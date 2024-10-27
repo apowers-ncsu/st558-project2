@@ -33,17 +33,52 @@ This app will explore mobile device usage data from [Kaggle](https://www.kaggle.
 data <- readr::read_csv("user_behavior_dataset.csv",col_names = TRUE)
 ```
 
+The data imports as appropriate types, but I don't like the column labels. I'm abbreviating and removing spaces.
+```{r}
+names(data) <- c(
+  "ID",
+  "Model",
+  "OS",
+  "AppUsageTime_min",
+  "ScreenTime_hr",
+  "BatteryUsage_mAh",
+  "Apps",
+  "DataUsage_MB",
+  "Age",
+  "Gender",
+  "Class"
+)
+```
+
 ## Contingency Tables
 A starting place for analysis, let's look at some one- and two-way contingency tables.
 ```{r}
 data |>
-  group_by(`Device Model`) |>
+  group_by(Model) |>
   summarize(n())
 ```
 
 So, our dataset is a fairly even mix of samples across device models.
 
 ```{r}
+data |> 
+  group_by(OS) |>
+  summarize(count=n())
+```
+
+This is reasonable, as Apple is a walled garden so all non-iPhone devices will be Android OS.
+
+I'd like to compare with ages and other numerical fields, but they are too granular. I need to create some groups.
+
+```{r}
+#ages binned by 5, from min 18 through max 59
+data$`Age Group` <- cut(
+  data$Age,
+  breaks=seq(15,60,by=5)
+)
+
+#app usage converted to minutes
+data$`App Usage Time (hr/day)` <- round(data$`App Usage Time (min/day)`/60,digits=1)
 
 ```
 
