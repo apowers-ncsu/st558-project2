@@ -68,17 +68,37 @@ data |>
 
 This is reasonable, as Apple is a walled garden so all non-iPhone devices will be Android OS.
 
-I'd like to compare with ages and other numerical fields, but they are too granular. I need to create some groups.
+I'd like to compare with ages and other numerical fields, but they are too granular. I need to create some groups. Then keeping only the columns that I want.
 
 ```{r}
 #ages binned by 5, from min 18 through max 59
-data$`Age Group` <- cut(
+data$AgeGroup <- cut(
   data$Age,
   breaks=seq(15,60,by=5)
 )
 
 #app usage converted to minutes
-data$`App Usage Time (hr/day)` <- round(data$`App Usage Time (min/day)`/60,digits=1)
+data$AppUsageTime_hr <- round(data$AppUsageTime_min/60,digits=1)
 
+#factor all character strings
+data$Gender <- factor(data$Gender)
+data$Model <- factor(data$Model)
+data$OS <- factor(data$OS)
+
+#only keep the columns that I want
+data <- 
+  data |> 
+  select(
+    ID,
+    Model,
+    OS,
+    Gender,
+    AgeGroup,
+    Apps,
+    ScreenTime_hr,
+    AppUsageTime_hr,
+    DataUsage_MB,
+    BatteryUsage_mAh
+  )
 ```
 
