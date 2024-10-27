@@ -1,0 +1,49 @@
+---
+title: "Static App Prototype"
+author: "Andy Powers"
+format: pdf
+---
+
+# Introduction
+
+## Static App Prototype
+This Quarto R project is the static, phase-I build of my app for exploring mobile device data. After completion in static form, I will iteratively convert each element to R Shiny dynamic format and add a flexible and friendly interface.
+
+## Static App Components
+1. Mobile device dataset.
+2. Contingency tables.
+3. Numerical summaries.
+4. Plots.
+
+# Components
+
+## Libraries
+```{r}
+library(tidyverse)
+library(utils)
+library(readr)
+library(readxl)
+```
+
+## Dataset
+
+This app will explore mobile device usage data from [Kaggle](https://www.kaggle.com/datasets/valakhorasani/mobile-device-usage-and-user-behavior-dataset). Because Kaggle is difficult to query, I've saved the file locally and included it in the same directory as the Quarto and app files.
+
+```{r}
+data <- readr::read_csv("user_behavior_dataset.csv",col_names = TRUE)
+```
+
+## Contingency Tables
+A starting place for analysis, let's look at some one- and two-way contingency tables.
+```{r}
+data |>
+  group_by(`Device Model`) |>
+  summarize(n())
+```
+
+So, our dataset is a fairly even mix of samples across device models.
+
+```{r}
+
+```
+
