@@ -32,9 +32,14 @@ This app will explore mobile device usage data from [Kaggle](https://www.kaggle.
 ```{r}
 data <- readr::read_csv("user_behavior_dataset.csv",col_names = TRUE)
 ```
-
-The data imports as appropriate types, but I don't like the column labels. I'm abbreviating and removing spaces.
 ```{r}
+sum(as.integer(is.na(data)))
+```
+Happily, there are no NA in this dataset.
+
+The data imports as appropriate types, except for ID, which I'll mark as character to represent its categorical nature. I don't like the column labels and so I will change those, too. Also, I'm abbreviating and removing spaces.
+```{r}
+data$ID <- as.character(data$ID)
 names(data) <- c(
   "ID",
   "Model",
@@ -46,7 +51,7 @@ names(data) <- c(
   "DataUsage_MB",
   "Age",
   "Gender",
-  "Class"
+  "UsageClass"
 )
 ```
 
@@ -84,6 +89,15 @@ data$AppUsageTime_hr <- round(data$AppUsageTime_min/60,digits=1)
 data$Gender <- factor(data$Gender)
 data$Model <- factor(data$Model)
 data$OS <- factor(data$OS)
+data$UsageClass <- factor(data$UsageClass,
+                     1:5,
+                     labels=c(
+                       'Light 1',
+                       'Low 2',
+                       'Average 3',
+                       'High 4',
+                       'Extreme 5')
+                     )
 
 #only keep the columns that I want
 data <- 
@@ -98,7 +112,193 @@ data <-
     ScreenTime_hr,
     AppUsageTime_hr,
     DataUsage_MB,
-    BatteryUsage_mAh
+    BatteryUsage_mAh,
+    UsageClass
+  )
+
+data
+```
+
+Now, let's look at model by gender.
+
+```{r}
+data |>
+  group_by(Model,Gender) |>
+  summarize(count = n()) |>
+  pivot_wider(names_from = Gender, values_from = count)
+```
+
+Nothing extreme shows here. Fewer females use the Samsung than males. More females have the Xiaomi.
+
+However, as the site specifies: *This Dataset was primarily designed to implement machine learning algorithms and is not a reliable source for a paper or article.* It says there are 700 samples here but it doesn't identify the source and survey methods, so any *insights* listed in this assignment will be fanciful, as if the data were properly sampled and could produce a strong insight.
+
+The dataset provides classes of usage. Let's look at those by gender before moving to numerical summaries.
+
+```{r}
+data |>
+  group_by(Gender,UsageClass) |>
+  summarize(count = n()) |>
+  pivot_wider(names_from = UsageClass, values_from = count)
+```
+
+That's interesting. Females tend more commonly to *Average 3* usage classes, while males lean more toward both extremes of lower and greater activity.
+
+## Numerical Summaries
+
+Let's check some numerical summaries now. First classes and app quantity, arbitrarily.
+
+```{r}
+data |>
+  group_by(UsageClass) |>
+  select(UsageClass,Apps) |>
+  summarise(across(where(is.numeric),
+                   list("mean" = ~ mean(.x),
+                        "median" = ~ median(.x),
+                        "sd" = ~ sd(.x),
+                        "iqr" = ~ IQR(.x),
+                        "n" = ~ n()
+                        )
+                   )
+            )
+```
+
+So, we see a sense of the range here. I didn't know what count of apps would be high or low, but this gives a framework for these: lowest samples are in the teens, higher nearing 100. I think a real, random sample would have many devices exceeding 100 apps. The lower bounds seem reasonable to me, because of OS or browsing, social media apps, etc. I doubt any phone has fewer than 15, generally.
+
+I am eager to see age groups by numerical summaries, but the 9-level category will be hard to interpret in a table like this. I'll do that with a plot. Instead, let's look at screentime by model.
+
+```{r}
+data |>
+  group_by(Model) |>
+  select(Model,ScreenTime_hr) |>
+  summarise(across(where(is.numeric),
+                   list("mean" = ~ mean(.x),
+                        "median" = ~ median(.x),
+                        "sd" = ~ sd(.x),
+                        "iqr" = ~ IQR(.x),
+                        "n" = ~ n()
+                        )
+                   )
+            )
+```
+This shows no strong difference to me. Maybe OS, to see if something interesting appears?
+
+```{r}
+data |>
+  group_by(OS) |>
+  summarise(across(BatteryUsage_mAh,
+                   list("mean" = ~ mean(.x),
+                        "median" = ~ median(.x),
+                        "sd" = ~ sd(.x),
+                        "iqr" = ~ IQR(.x),
+                        "n" = ~ n()
+                        )
+                   )
+            )
+```
+
+At least a little difference here, with iOS having higher *battery usage*. Let's run one correlation, to check that battery usage relates equally strongly with something like screen on time, across the OS category.
+
+```{r}
+data |>
+  group_by(OS) |>
+  summarise(correlation = cor(ScreenTime_hr,BatteryUsage_mAh))
+```
+
+## Plots
+
+Let's start by exploring a few varieties of charts, to reaquaint myself with `ggplot2`. Then, I'll clean these up and explore something more interesting like age groups.
+
+```{r}
+#g <- ggplot((data), aes(x = Apps))
+g <- ggplot(data)
+g + 
+  geom_density(aes(x=Apps)) +
+  labs(
+    title="Density by App Count",
+    x="Count of Apps"
   )
 ```
+
+```{r}
+#g <- ggplot((data), aes(x = Apps))
+g + 
+  geom_density(
+    aes(x=Apps,
+        fill=Gender),
+    position = "fill") +
+  labs(
+    title="Filled density per Gender by App Count",
+    x="Count of Apps"
+  )
+```
+```{r}
+g <- ggplot(data)#, aes(x = AgeGroup,y=ScreenTime_hr,fill=Gender))
+g + 
+  geom_boxplot(
+    aes(x=AgeGroup,
+        y=ScreenTime_hr,
+        fill=Gender,
+        )
+    ) +
+  labs(
+    title="Age Groups by Screen Time per Gender"
+  )
+```
+
+So much data that this is hard to interpret. However, there is a fairly common trend that matches prior tables - that males have more variation in screen time, typically, than females. It is hard to see any pattern of screen time by age group. However, looking at the medians, we can see that frequently the median screen time per female exceeds that of males, more commonly in younger ages.
+
+```{r}
+g <- data |>
+  #filter(Model=="Google Pixel 5") |> 
+  ggplot()
+g + 
+  geom_point(
+    aes(x=ScreenTime_hr,
+        y=Apps,
+        color=UsageClass
+        )
+    ) +
+  labs(
+    title="ScreenTime by Count of Apps per Usage Class"
+  )
+```
+
+This is very strange data. I do not like the samples! We can see they defined usage classes and samples for inclusion very oddly, with strict cut offs for these cluster labels. In future plots, I will encourage caution or to attempt analysis within one usage class alone. 
+
+It's hard to even *fabricate* insight from this data because it is so strange! Note that the samples included were strictly contained within regions, restricting values outside of these geometric areas. Any correlation, boxplot, etc. is basically untrustworthy because it is displaying highly choreographed, unnatural data.
+
+```{r}
+g <- data |>
+  filter(UsageClass=="Extreme 5") |> 
+  ggplot()
+g + 
+  geom_bin2d(
+    aes(x=ScreenTime_hr,
+        y=AppUsageTime_hr
+        ),
+    binwidth=.25
+    ) +
+  labs(
+    title="Screen Time by App Usage Time for Extreme Samples Only"
+  )
+```
+This chart type would be great, except that it has terrible underlying data. This chart for bivariate distributions only works well for samples of metrics that have enough overlap to have some frequency >1 per square.
+
+```{r}
+g <- data |>
+  #filter(Model=="Google Pixel 5") |> 
+  ggplot()
+g + 
+  geom_step(
+    aes(x=AppUsageTime_hr,
+        y=ScreenTime_hr
+        )#,
+    #binwidth=.25
+    ) +
+  labs(
+    title="Screen Time by App Usage Time for Extreme Samples Only"
+  ) +
+  facet_wrap(. ~ AgeGroup)
+```
+
 
