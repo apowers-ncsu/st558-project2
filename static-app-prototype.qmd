@@ -286,19 +286,18 @@ This chart type would be great, except that it has terrible underlying data. Thi
 
 ```{r}
 g <- data |>
-  #filter(Model=="Google Pixel 5") |> 
   ggplot()
 g + 
   geom_step(
-    aes(x=AppUsageTime_hr,
-        y=ScreenTime_hr
+    aes(y=DataUsage_MB,
+        x=ScreenTime_hr
         )#,
     #binwidth=.25
     ) +
   labs(
-    title="Screen Time by App Usage Time for Extreme Samples Only"
+    title="Screen Time by Data Usage Faceted by Age Group"
   ) +
   facet_wrap(. ~ AgeGroup)
 ```
-
+Ignoring data quality, it is a little interesting to see the difference between the eldest and youngest cohorts here. The sustained tendency for 55-60 year olds to have high bandwidth usage along with high screen times could suggest their behaviors lean toward video (a high-bandwidth activity). Those in the younger category might be trending toward social media, a frequent use of screen time but generally lower bandwidth.
 
