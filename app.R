@@ -1,8 +1,16 @@
 # This app will enable exploration of data representing mobile device attributes and behaviors.
 # For further references, see associated [Quarto file](static-app-prototype.qmd).
 
+#includes
 library(shiny)
 library(bslib)
+
+# global vars
+numVars <- c("Apps",
+             "ScreenTime_hr",
+             "AppUsageTime_hr",
+             "DataUsage_MB",
+             "BatteryUsage_mAh")
 
 # UI definition
 ### somewhere must use dynamic text
@@ -33,38 +41,65 @@ ui <- fluidPage(
           radioButtons(
             inputId = "model",
             label = "Model",
-            choices = c("All Elements",attributes(data$Model)$levels)
+            choices = c("~ All ~",attributes(data$Model)$levels)
           ),
           
           ### OS
           radioButtons(
             inputId = "os",
             label = "OS",
-            choices = c("ALL",attributes(data$OS)$levels)
+            choices = c("~ All ~",attributes(data$OS)$levels)
           ),
           
           ### Gender
           radioButtons(
             inputId = "gender",
             label = "Gender",
-            choices = c("ALL",attributes(data$Gender)$levels)
+            choices = c("~ All ~",attributes(data$Gender)$levels)
           ),
           
           ### age groups
           checkboxGroupInput(
             inputId = "ageGroup",
             label = "Age Group",
-            choices = c(attributes(data$AgeGroup)$levels)
+            choices = attributes(data$AgeGroup)$levels,
+            selected = attributes(data$AgeGroup)$levels
           ),          
           
           ### classes
           checkboxGroupInput(
             inputId = "usageClass",
             label = "Usage Class",
-            choices = c(attributes(data$UsageClass)$levels)
+            choices = attributes(data$UsageClass)$levels,
+            selected = attributes(data$UsageClass)$levels
           ),          
           
-            #inputs here
+          #numerical var selections
+          h3("Numerical Variables"),
+          
+          #select any 2 from list
+          selectizeInput(
+            inputId = "numVars",
+            label = "Select 0-2 variables to subset",
+            choices = numVars,
+            multiple = TRUE,
+            options = list(maxItems = 2,
+                           plugins = c("clear_button")
+                           )
+            ),
+          
+          #slider1
+          uiOutput("slider1"),
+
+          #slider2
+          uiOutput("slider2"),
+          
+          #"go" button
+          actionButton(
+            inputId = "process",
+            label = "Process Selections"
+          )
+                    
         ),
 
         # main panel with tabs
