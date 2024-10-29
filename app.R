@@ -2,6 +2,7 @@
 # For further references, see associated [Quarto file](static-app-prototype.qmd).
 
 library(shiny)
+library(bslib)
 
 # UI definition
 ### somewhere must use dynamic text
@@ -24,6 +25,45 @@ ui <- fluidPage(
     ### action button to subset per selections (vs auto-sub as edited)
     sidebarLayout(
         sidebarPanel(
+          
+          #categorical var selections
+          h3("Categorical Variables"),
+          
+          ### model
+          radioButtons(
+            inputId = "model",
+            label = "Model",
+            choices = c("All Elements",attributes(data$Model)$levels)
+          ),
+          
+          ### OS
+          radioButtons(
+            inputId = "os",
+            label = "OS",
+            choices = c("ALL",attributes(data$OS)$levels)
+          ),
+          
+          ### Gender
+          radioButtons(
+            inputId = "gender",
+            label = "Gender",
+            choices = c("ALL",attributes(data$Gender)$levels)
+          ),
+          
+          ### age groups
+          checkboxGroupInput(
+            inputId = "ageGroup",
+            label = "Age Group",
+            choices = c(attributes(data$AgeGroup)$levels)
+          ),          
+          
+          ### classes
+          checkboxGroupInput(
+            inputId = "usageClass",
+            label = "Usage Class",
+            choices = c(attributes(data$UsageClass)$levels)
+          ),          
+          
             #inputs here
         ),
 
@@ -49,7 +89,7 @@ ui <- fluidPage(
         ####### for ex: select num var for num summary, plus cat var to summarize across
         ####### for ex: plots, select which var on x or y, coloring, etc.
         ##### account for error messages, plus loading spinners for waits
-        mainPanel(
+        mainPanel("HO"
            #plots etc.
         )
     )
