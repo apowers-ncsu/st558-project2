@@ -85,12 +85,18 @@ ui <- fluidPage(
                            )
             ),
           
-          #slider1
-          uiOutput("outSlider1"),
-
-          #slider2
-          uiOutput("outSlider2"),
+          #slider1 - conditional, only if inNumVars length >=1
+          conditionalPanel(
+            condition = "input.inNumVars.length >= 1",
+            uiOutput("outSlider1")  
+          ),
           
+          #slider2 - conditional, only if inNumVars length ==2
+          conditionalPanel(
+            condition = "input.inNumVars.length == 2",
+            uiOutput("outSlider2")  
+          ),
+
           #"go" button
           actionButton(
             inputId = "inProcessButton",
@@ -158,6 +164,7 @@ ui <- fluidPage(
                 inputId = "inDownloadButton",
                 label = "Download Table as .csv"
               ),
+              p(),
               
               ##### display with dataTableOutput / renderDataTable
               DTOutput(outputId="outDTOutput")
@@ -237,10 +244,34 @@ server <- function(input, output, session) {
     #data table update
     output$outDTOutput <- renderDT({
       isolate(dt_subset()) #dont really understand isolate here but saw example and copied it
-      
     })
-    
   })
+  
+  #render sliders
+  
+  output$outSlider1 <- renderUI({
+    
+    sliderInput("inSlider1",
+                min=1,
+                max=5,
+                value=3,
+                label=input$inNumVars[1])
+    
+    #need to use the special syntax to take a label like "APPS" and then pull the actual data back
+    #######################
+  })
+  
+  output$outSlider2 <- renderUI({
+    
+    sliderInput("inSlider2",
+                min=1,
+                max=5,
+                value=3,
+                label=input$inNumVars[2])
+    
+    #need to use the special syntax to take a label like "APPS" and then pull the actual data back
+    #######################
+  })  
   
 }
 
