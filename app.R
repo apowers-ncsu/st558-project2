@@ -214,11 +214,8 @@ while to render.")
 ### somewhere must use dynamic text#############################################
 server <- function(input, output, session) {
   
-
-
-  #make reactive environment subset version of dt
+  #Make reactive environment subset version of dt
   dt_subset <- reactive({
-    
     #subset according to categorical selections
     dt |>
       filter(
@@ -228,21 +225,21 @@ server <- function(input, output, session) {
         if (length(input$inAgeGroup) == 0) TRUE else dt$AgeGroup %in% input$inAgeGroup,
         if (length(input$inUsageClass) == 0) TRUE else dt$UsageClass %in% input$inUsageClass
       )
-    
-        
-    
   })
   
-  #data table render
-  output$outDTOutput <- renderDT({
-    #dt_update()
-    dt_subset()
-    #handle selections like All or none
+  #### problem: still reacts all the time on changes. I want no reaction until/unless the button.
+  #### below, the button condition only changes whether you can see it at first. once you can see
+  #### it, then you see it continue to update.
+  
+  #listen for button before taking action
+  observeEvent(input$inProcessButton,{
     
+    #data table update
+    output$outDTOutput <- renderDT({
+      isolate(dt_subset()) #dont really understand isolate here but saw example and copied it
+      
+    })
     
-    #subset according to selections
-    
-
   })
   
 }
