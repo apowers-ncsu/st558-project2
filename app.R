@@ -223,7 +223,7 @@ server <- function(input, output, session) {
   
   output$outDTOutput <- renderDT({
     dt_update()
-    dt
+    print(dt)
   })
   
 }

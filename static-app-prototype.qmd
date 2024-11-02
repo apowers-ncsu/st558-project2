@@ -39,7 +39,7 @@ Happily, there are no NA in this dataset.
 
 The data imports as appropriate types, except for ID, which I'll mark as character to represent its categorical nature. I don't like the column labels and so I will change those, too. Also, I'm abbreviating and removing spaces.
 ```{r}
-data["User ID"] <- as.character(data["User ID"])
+data <- data |> mutate(across("User ID",as.character))
 names(data) <- c(
   "ID",
   "Model",
