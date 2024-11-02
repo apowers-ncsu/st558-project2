@@ -161,12 +161,12 @@ ui <- fluidPage(
               p(),
               
               ##### save data via downloadButton
-              actionButton(
-                inputId = "inDownloadButton",
+              downloadButton(
+                outputId = "outDownloadButton",
                 label = "Download Table as .csv"
               ),
               p(),
-              
+                            
               ##### display with dataTableOutput / renderDataTable
               DTOutput(outputId="outDTOutput")
             ),
@@ -258,6 +258,21 @@ server <- function(input, output, session) {
     output$outDTOutput <- renderDT({
       isolate(dt_subset()) #dont really understand isolate here but saw example and copied it
     }) 
+    
+    #output / render for download function
+    output$outDownloadButton <- downloadHandler(
+      filename = function() {
+        paste('data-',
+              Sys.Date(),
+              '.csv',
+              sep=''
+        )
+      },
+      content = function(con) {
+        write.csv(dt_subset(), con)
+      }
+    )
+    
   })
   
   #render sliders
@@ -266,36 +281,36 @@ server <- function(input, output, session) {
     #to avoid warnings, check value exists
     if(length(input$inNumVars)>=1) {
       
-      min=min(dt[input$inNumVars[1]])
-      max=max(dt[input$inNumVars[1]])
+      min1=min(dt[input$inNumVars[1]])
+      max1=max(dt[input$inNumVars[1]])
       
       sliderInput(
         "inSlider1",
-        min=min,
-        max=max,
-        value=c(min,max),
+        min=min1,
+        max=max1,
+        value=c(min1,max1),
         label=input$inNumVars[1]
       )
     }
   })
-  
   output$outSlider2 <- renderUI({
-    #####improve error checking?######
     #to avoid warnings, check value exists
     if(length(input$inNumVars)==2) {
       
-      min=min(dt[input$inNumVars[2]])
-      max=max(dt[input$inNumVars[2]])
+      min2=min(dt[input$inNumVars[2]])
+      max2=max(dt[input$inNumVars[2]])
       
       sliderInput(
         "inSlider2",
-        min=min,
-        max=max,
-        value=c(min,max),
+        min=min2,
+        max=max2,
+        value=c(min2,max2),
         label=input$inNumVars[2]
       )
     }
-  })    
+  })
+
+  
 }
 
 # Run the application 
