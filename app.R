@@ -6,7 +6,7 @@ library(shiny)
 library(bslib)
 library(DT)
 
-#vars and core data read
+#vars and core data read into variable 'dt'
 source("myhelpers.R")
 
 # UI definition
@@ -216,14 +216,15 @@ server <- function(input, output, session) {
   
 
 
-  #define data update reactive "function" to watch for action button in sidebar
+  #make reactive environment for use of sidebar ProcessButton
   dt_update <- reactive({
     x = input$inProcessButton
   })
   
+  #data table render
   output$outDTOutput <- renderDT({
     dt_update()
-    print(dt)
+    dt
   })
   
 }
