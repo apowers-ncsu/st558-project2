@@ -5,6 +5,7 @@
 library(shiny)
 library(bslib)
 library(DT)
+library(tidyverse)
 
 #vars and core data read into variable 'dt'
 source("myhelpers.R")
@@ -244,35 +245,49 @@ server <- function(input, output, session) {
     #data table update
     output$outDTOutput <- renderDT({
       isolate(dt_subset()) #dont really understand isolate here but saw example and copied it
-    })
+    }) 
+    #print(length(input$inNumVars))
   })
   
   #render sliders
   
   output$outSlider1 <- renderUI({
+    #####improve error checking?######
     
-    sliderInput("inSlider1",
-                min=1,
-                max=5,
-                value=3,
-                label=input$inNumVars[1])
-    
-    #need to use the special syntax to take a label like "APPS" and then pull the actual data back
-    #######################
+    #to avoid warnings, check value exists
+    if(length(input$inNumVars)>=1) {
+      
+      min=min(dt[input$inNumVars[1]])
+      max=max(dt[input$inNumVars[1]])
+      
+      sliderInput(
+        "inSlider1",
+        min=min,
+        max=max,
+        value=c(min,max),
+        label=input$inNumVars[1]
+      )
+    }
   })
   
   output$outSlider2 <- renderUI({
+    #####improve error checking?######
     
-    sliderInput("inSlider2",
-                min=1,
-                max=5,
-                value=3,
-                label=input$inNumVars[2])
-    
-    #need to use the special syntax to take a label like "APPS" and then pull the actual data back
-    #######################
-  })  
-  
+    #to avoid warnings, check value exists
+    if(length(input$inNumVars)==2) {
+      
+      min=min(dt[input$inNumVars[2]])
+      max=max(dt[input$inNumVars[2]])
+      
+      sliderInput(
+        "inSlider2",
+        min=min,
+        max=max,
+        value=c(min,max),
+        label=input$inNumVars[2]
+      )
+    }
+  })    
 }
 
 # Run the application 
