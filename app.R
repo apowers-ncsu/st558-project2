@@ -6,12 +6,8 @@ library(shiny)
 library(bslib)
 library(DT)
 
-# global vars
-numVars <- c("Apps",
-             "ScreenTime_hr",
-             "AppUsageTime_hr",
-             "DataUsage_MB",
-             "BatteryUsage_mAh")
+#vars and core data read
+source("myhelpers.R")
 
 # UI definition
 ### somewhere must use dynamic text
@@ -40,39 +36,39 @@ ui <- fluidPage(
           
           ### model
           radioButtons(
-            inputId = "model",
+            inputId = "inModel",
             label = "Model",
-            choices = c("~ All ~",attributes(data$Model)$levels)
+            choices = c("~ All ~",attributes(dt$Model)$levels)
           ),
           
           ### OS
           radioButtons(
-            inputId = "os",
+            inputId = "inOS",
             label = "OS",
-            choices = c("~ All ~",attributes(data$OS)$levels)
+            choices = c("~ All ~",attributes(dt$OS)$levels)
           ),
           
           ### Gender
           radioButtons(
-            inputId = "gender",
+            inputId = "inGender",
             label = "Gender",
-            choices = c("~ All ~",attributes(data$Gender)$levels)
+            choices = c("~ All ~",attributes(dt$Gender)$levels)
           ),
           
           ### age groups
           checkboxGroupInput(
-            inputId = "ageGroup",
+            inputId = "inAgeGroup",
             label = "Age Group",
-            choices = attributes(data$AgeGroup)$levels,
-            selected = attributes(data$AgeGroup)$levels
+            choices = attributes(dt$AgeGroup)$levels,
+            selected = attributes(dt$AgeGroup)$levels
           ),          
           
           ### classes
           checkboxGroupInput(
-            inputId = "usageClass",
+            inputId = "inUsageClass",
             label = "Usage Class",
-            choices = attributes(data$UsageClass)$levels,
-            selected = attributes(data$UsageClass)$levels
+            choices = attributes(dt$UsageClass)$levels,
+            selected = attributes(dt$UsageClass)$levels
           ),          
           
           #numerical var selections
@@ -80,7 +76,7 @@ ui <- fluidPage(
           
           #select any 2 from list
           selectizeInput(
-            inputId = "numVars",
+            inputId = "inNumVars",
             label = "Select 0-2 variables to subset",
             choices = numVars,
             multiple = TRUE,
@@ -90,14 +86,14 @@ ui <- fluidPage(
             ),
           
           #slider1
-          uiOutput("slider1"),
+          uiOutput("outSlider1"),
 
           #slider2
-          uiOutput("slider2"),
+          uiOutput("outSlider2"),
           
           #"go" button
           actionButton(
-            inputId = "processButton",
+            inputId = "inProcessButton",
             label = "Process Selections"
           )
                     
@@ -159,12 +155,12 @@ ui <- fluidPage(
               
               ##### save data via downloadButton
               actionButton(
-                inputId = "downloadButton",
+                inputId = "inDownloadButton",
                 label = "Download Table as .csv"
               ),
               
               ##### display with dataTableOutput / renderDataTable
-              DTOutput(outputId="dataTableOutput")
+              DTOutput(outputId="outDTOutput")
             ),
             
             
@@ -218,17 +214,17 @@ while to render.")
 ### somewhere must use dynamic text#############################################
 server <- function(input, output, session) {
   
-  #read in full data ONE TIME ONLY
-#  data <- readr::read_csv("user_behavior_dataset.csv",col_names = TRUE)
+
 
   #define data update reactive "function" to watch for action button in sidebar
-#  data_update <- reactive({
-#    x = input$processButton
-#  })
+  dt_update <- reactive({
+    x = input$inProcessButton
+  })
   
-#  output$dataTableOutput <- renderDT({
-#    data_update()
-#  })
+  output$outDTOutput <- renderDT({
+    dt_update()
+    dt
+  })
   
 }
 
