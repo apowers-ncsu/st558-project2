@@ -32,6 +32,12 @@ ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
           
+          #"go" button
+          actionButton(
+            inputId = "inProcessButton",
+            label = "Process Selections"
+          ),
+                    
           #categorical var selections
           h3("Categorical Variables"),
           
@@ -96,12 +102,6 @@ ui <- fluidPage(
           conditionalPanel(
             condition = "input.inNumVars.length == 2",
             uiOutput("outSlider2")  
-          ),
-
-          #"go" button
-          actionButton(
-            inputId = "inProcessButton",
-            label = "Process Selections"
           )
                     
         ),
@@ -224,21 +224,33 @@ server <- function(input, output, session) {
   
   #Make reactive environment subset version of dt
   dt_subset <- reactive({
-    #subset according to categorical selections
     dt |>
+      
+      #subset according to categorical selections
       filter(
         if (input$inModel == "~ All ~") TRUE else input$inModel == dt$Model,
         if (input$inOS == "~ All ~") TRUE else input$inOS == dt$OS,
         if (input$inGender == "~ All ~") TRUE else input$inGender == dt$Gender,
         if (length(input$inAgeGroup) == 0) TRUE else dt$AgeGroup %in% input$inAgeGroup,
         if (length(input$inUsageClass) == 0) TRUE else dt$UsageClass %in% input$inUsageClass
-      )
+      ) |>
+      
+      #subset according to numerical selections
+      filter(
+        #within slider1 range, if present
+        if (length(input$inNumVars)>=1) {
+          (dt[input$inNumVars[1]] >= input$inSlider1[1]) &
+          (dt[input$inNumVars[1]] <= input$inSlider1[2])
+        } else TRUE,
+
+        #within slider2 range, if present
+        if (length(input$inNumVars)==2) {
+          (dt[input$inNumVars[2]] >= input$inSlider2[1]) &
+            (dt[input$inNumVars[2]] <= input$inSlider2[2])
+        } else TRUE
+      )        
   })
-  
-  #### problem: still reacts all the time on changes. I want no reaction until/unless the button.
-  #### below, the button condition only changes whether you can see it at first. once you can see
-  #### it, then you see it continue to update.
-  
+
   #listen for button before taking action
   observeEvent(input$inProcessButton,{
     
@@ -246,14 +258,11 @@ server <- function(input, output, session) {
     output$outDTOutput <- renderDT({
       isolate(dt_subset()) #dont really understand isolate here but saw example and copied it
     }) 
-    #print(length(input$inNumVars))
   })
   
   #render sliders
-  
   output$outSlider1 <- renderUI({
     #####improve error checking?######
-    
     #to avoid warnings, check value exists
     if(length(input$inNumVars)>=1) {
       
@@ -272,7 +281,6 @@ server <- function(input, output, session) {
   
   output$outSlider2 <- renderUI({
     #####improve error checking?######
-    
     #to avoid warnings, check value exists
     if(length(input$inNumVars)==2) {
       
