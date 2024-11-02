@@ -4,6 +4,7 @@
 #includes
 library(shiny)
 library(bslib)
+library(DT)
 
 # global vars
 numVars <- c("Apps",
@@ -107,15 +108,20 @@ ui <- fluidPage(
           navset_pill(
             
             ### About tab, default start
-            ##### Purpose of app
-            ##### Data, source, link
-            ##### tell purpose of sidebar and each tab
-            ##### relevant picture
             nav_panel(
               title = "About",
+              
+              #header image
+              tags$div(
+                style="text-align:center",
+                img(src="https://cdn.pixabay.com/photo/2016/11/23/13/40/cellphone-1852898_1280.jpg",width="100px")
+              ),
+                            
+              ##### Purpose of app
               h4("Purpose"),
               p("This Shiny app should facilitate smooth and dynamic analysis of the dataset described below. Through reactive methods, the user can easily subset and filter data and re-query to programmatically update plots and summaries."),
               
+              ##### Data, source, link
               h4("Data Source"),
               p("This app will explore mobile device usage data from",
                 tags$a(
@@ -127,23 +133,47 @@ ui <- fluidPage(
                 "This dataset provides a comprehensive analysis of mobile device usage patterns and user behavior classification. It contains 700 samples of user data, including metrics such as app usage time, screen-on time, battery drain, and data consumption. Each entry is categorized into one of five user behavior classes, ranging from light to extreme usage, allowing for insightful analysis and modeling."
               ),
               
-              h4("Controls"),
-              p("blah"),
-              #image
-              ),
+              ##### tell purpose of sidebar and each tab
+              h4("App Components"),
+              h5("Sidebar"),
+              p("Define changes to the dataset query, including categorical and numerical subsetting. When data subsets are ready, click Process Selections to run and update the dataset and displays."),
+              h5("About"),
+              p("Information about the app design and usage."),
+              h5("Data Download"),
+              p("Display dataset returned by the latest execution of the Process Selections button, incorporating applicable subsets. User may also download the data as a .csv file."),
+              h5("Data Exploration"),
+              p("Area for exploratory data analysis using numerical and graphical summaries. User may adjust certain plot elements and variables displayed."),
+              
+              #kaggle img/link
+              tags$a(
+                href="https://www.kaggle.com/",
+                img(src="https://www.kaggle.com/static/images/site-logo.svg",height="30px")
+              )
+            ),
             
             ### Data Download tab
-            ##### display with dataTableOutput / renderDataTable
+            
             ##### subset per selections/action button
-            ##### save data via downloadButton
+            
             nav_panel(
               title = "Data Download",
               p("Display the data using DT::dataTableOutput() with DT::renderDataTable()
 ∗ The data should be subsetted when the user selects a subset (and clicks the previously mentioned
 button)
 ∗ Save the (possibly subsetted) data as a file (.csv is fine but whatever you’d like) by using a
-downloadButton() (")
-              ),
+downloadButton() (see here)"),
+              
+              ##### save data via downloadButton
+              
+              
+              ##### display with dataTableOutput / renderDataTable
+              DTOutput(outputId="dataTableOutput"),
+              
+              
+              
+            ),
+            
+            
             
             ### Data Exploration tab
             ##### obtain the num/graph summaries from the prototype build contents
