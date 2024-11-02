@@ -216,15 +216,33 @@ server <- function(input, output, session) {
   
 
 
-  #make reactive environment for use of sidebar ProcessButton
-  dt_update <- reactive({
-    x = input$inProcessButton
+  #make reactive environment subset version of dt
+  dt_subset <- reactive({
+    
+    #subset according to categorical selections
+    dt |>
+      filter(
+        if (input$inModel == "~ All ~") TRUE else input$inModel == dt$Model,
+        if (input$inOS == "~ All ~") TRUE else input$inOS == dt$OS,
+        if (input$inGender == "~ All ~") TRUE else input$inGender == dt$Gender,
+        if (length(input$inAgeGroup) == 0) TRUE else dt$AgeGroup %in% input$inAgeGroup,
+        if (length(input$inUsageClass) == 0) TRUE else dt$UsageClass %in% input$inUsageClass
+      )
+    
+        
+    
   })
   
   #data table render
   output$outDTOutput <- renderDT({
-    dt_update()
-    dt
+    #dt_update()
+    dt_subset()
+    #handle selections like All or none
+    
+    
+    #subset according to selections
+    
+
   })
   
 }
