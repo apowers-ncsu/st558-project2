@@ -97,7 +97,7 @@ ui <- fluidPage(
           
           #"go" button
           actionButton(
-            inputId = "process",
+            inputId = "processButton",
             label = "Process Selections"
           )
                     
@@ -110,6 +110,7 @@ ui <- fluidPage(
             ### About tab, default start
             nav_panel(
               title = "About",
+              p(),
               
               #header image
               tags$div(
@@ -152,25 +153,18 @@ ui <- fluidPage(
             ),
             
             ### Data Download tab
-            
-            ##### subset per selections/action button
-            
             nav_panel(
               title = "Data Download",
-              p("Display the data using DT::dataTableOutput() with DT::renderDataTable()
-∗ The data should be subsetted when the user selects a subset (and clicks the previously mentioned
-button)
-∗ Save the (possibly subsetted) data as a file (.csv is fine but whatever you’d like) by using a
-downloadButton() (see here)"),
+              p(),
               
               ##### save data via downloadButton
-              
+              actionButton(
+                inputId = "downloadButton",
+                label = "Download Table as .csv"
+              ),
               
               ##### display with dataTableOutput / renderDataTable
-              DTOutput(outputId="dataTableOutput"),
-              
-              
-              
+              DTOutput(outputId="dataTableOutput")
             ),
             
             
@@ -186,6 +180,7 @@ downloadButton() (see here)"),
             ##### account for error messages, plus loading spinners for waits
             nav_panel(
               title = "Data Exploration",
+              p(),
               p("The tab will allow the user to obtain the numeric and graphical
 summaries noted from ‘Prepare for Your App’ section
 2
@@ -204,7 +199,8 @@ variable used for coloring, those kinds of things!
 ∗ You should account for any error messages that pop up while changing the widgets (as done
 in the notes) and use loading spinners or other methods to display for any plot that takes a
 while to render.")
-              ),
+              
+            ),
             
             nav_spacer(),
             nav_menu(
@@ -219,12 +215,21 @@ while to render.")
 )
 
 # server definition
-### somewhere must use dynamic text
+### somewhere must use dynamic text#############################################
 server <- function(input, output, session) {
+  
+  #read in full data ONE TIME ONLY
+#  data <- readr::read_csv("user_behavior_dataset.csv",col_names = TRUE)
 
-    #output$distPlot <- renderPlot({
-        
-    #})
+  #define data update reactive "function" to watch for action button in sidebar
+#  data_update <- reactive({
+#    x = input$processButton
+#  })
+  
+#  output$dataTableOutput <- renderDT({
+#    data_update()
+#  })
+  
 }
 
 # Run the application 
