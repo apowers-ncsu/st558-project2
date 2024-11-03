@@ -378,28 +378,83 @@ server <- function(input, output, session) {
     
     #BASE output for numerical table
     output$outSummaryNumerical <- renderDT({
-      dt_updated
+      dt_updated |>
+        select(numVars[1]) |>
+        summarize(across(where(is.numeric),
+                         list("mean" = ~ round(mean(.x),digits=3),
+                              "median" = ~ round(median(.x),digits=3),
+                              "sd" = ~ round(sd(.x),digits=3),
+                              "iqr" = ~ round(IQR(.x),digits=3),
+                              "n" = ~ n()
+                         )))
+
+                         
         ##### update here with proper num summary stuff
+      
+      
+      
+      #data |>
+        #group_by(UsageClass) |>
+        #select(UsageClass,Apps) |>
+        #summarise(across(where(is.numeric),
+         #                list("mean" = ~ mean(.x),
+        #                      "median" = ~ median(.x),
+        #                      "sd" = ~ sd(.x),
+        #                      "iqr" = ~ IQR(.x),
+        #                      "n" = ~ n()
+        #                 )
+        #)
+        #)      
     })
     
     #edit the summary displays accordingly
     observe({
+      #cat summary update
       output$outSummaryCategorical <-
         if (req(input$inSummaryCatVar2) == "~ None ~") { #req was the key to avoid crash!
-          renderDT(
+          renderDT({
             dt_updated |> 
               group_by(!!sym(input$inSummaryCatVar1)) |>
               summarize(count = n())
-          )
+          })
         } else {
-          renderDT(
+          renderDT({
             dt_updated |> 
               group_by(!!sym(input$inSummaryCatVar1),!!sym(input$inSummaryCatVar2)) |>
               summarize(count = n()) |>
               pivot_wider(names_from = !!sym(input$inSummaryCatVar2), values_from = count)
-          )
+          })
         }
-      
+      #num summary update
+      output$outSummaryNumerical <- 
+        if (req(input$inSummaryNumVarGroupBy) == "~ None ~") {
+          renderDT({
+            dt_updated |>
+              select(!!sym(input$inSummaryNumVar)) |>
+              summarize(across(where(is.numeric),
+                               list("mean" = ~ round(mean(.x),digits=3),
+                                    "median" = ~ round(median(.x),digits=3),
+                                    "sd" = ~ round(sd(.x),digits=3),
+                                    "iqr" = ~ round(IQR(.x),digits=3),
+                                    "n" = ~ n()
+                             )))
+          })
+        } else {
+          renderDT({
+            dt_updated |>
+              select(!!sym(input$inSummaryNumVar),
+                     !!sym(input$inSummaryNumVarGroupBy)) |>
+              group_by(!!sym(input$inSummaryNumVarGroupBy)) |>
+              summarize(across(where(is.numeric),
+                               list("mean" = ~ round(mean(.x),digits=3),
+                                    "median" = ~ round(median(.x),digits=3),
+                                    "sd" = ~ round(sd(.x),digits=3),
+                                    "iqr" = ~ round(IQR(.x),digits=3),
+                                    "n" = ~ n()
+                               )))
+          })
+        }
+        
     })
 
   })
