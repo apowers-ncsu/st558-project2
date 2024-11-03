@@ -103,6 +103,9 @@ ui <- fluidPage(
             condition = "input.inNumVars.length == 2",
             uiOutput("outSlider2")  
           ),
+          
+          #note about my error
+          p("NOTE: Clicking the button before opening Data Exploration will crash."),
 
           #"go" button
           actionButton(
@@ -379,11 +382,10 @@ server <- function(input, output, session) {
         ##### update here with proper num summary stuff
     })
     
-    #observe event of any edits / instances of IDs of interest?
-    #observeEvent(input$inSummaryType, {print("HI")
+    #edit the summary displays accordingly
     observe({
       output$outSummaryCategorical <-
-        if (input$inSummaryCatVar2 == "~ None ~") {
+        if (req(input$inSummaryCatVar2) == "~ None ~") { #req was the key to avoid crash!
           renderDT(
             dt_updated |> 
               group_by(!!sym(input$inSummaryCatVar1)) |>
