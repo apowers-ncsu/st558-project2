@@ -204,18 +204,24 @@ ui <- fluidPage(
                     label = "Type",
                     choices = c("Categorical", "Numerical")
                   ),
+                  #show numerical selection if appropriate
+                  conditionalPanel(
+                    condition = "input.inSummaryType == 'Numerical'",
+                    uiOutput("outSummaryNumVar")  
+                  ),                
                   selectizeInput(
                     inputId = "inGroupByVar1",
                     label = "Group By (1)",
                     choices = c("~ None ~",catVars),
                     multiple = FALSE,
                     width = 200
-                  ),  
-                  #slider1 - conditional, only if inNumVars length >=1
+                  ),
+                  #show extra group by selector if appropraite
                   conditionalPanel(
                     condition = "input.inSummaryType == 'Categorical'",
                     uiOutput("outGroupByVar2")  
                   )
+                  
                 ),  
                 
                 ### RIGHT COL: choose vars to use in plots 
@@ -405,7 +411,7 @@ server <- function(input, output, session) {
     }
   })
   
-  #additional group by 2 (for cat vars only)
+  #additional group by 2 (for categorical var summary only)
   output$outGroupByVar2 <- renderUI({
     selectizeInput(
       inputId = "inGroupByVar2",
@@ -417,7 +423,18 @@ server <- function(input, output, session) {
     
   })
 
-  
+  #additional group by 2 (for categorical var summary only)
+  output$outSummaryNumVar <- renderUI({
+    selectizeInput(
+      inputId = "inSummaryNumVar",
+      label = "Numerical Variable",
+      choices = numVars,
+      multiple = FALSE,
+      width = 200
+    ) 
+    
+  })  
+
 }
 
 # Run the application 
