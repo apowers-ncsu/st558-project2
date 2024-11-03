@@ -4,6 +4,12 @@ numVars <- c("Apps",
              "AppUsageTime_hr",
              "DataUsage_MB",
              "BatteryUsage_mAh")
+catVars <- c("ID",
+             "Model",
+             "OS",
+             "Gender",
+             "AgeGroup",
+             "UsageClass")
 
 #read in full data ONE TIME ONLY
 dt <- readr::read_csv("user_behavior_dataset.csv",col_names = TRUE)

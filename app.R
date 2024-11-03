@@ -124,7 +124,7 @@ ui <- fluidPage(
               #header image
               tags$div(
                 style="text-align:center",
-                img(src="https://cdn.pixabay.com/photo/2016/11/23/13/40/cellphone-1852898_1280.jpg",width="100px")
+                img(src="https://cdn.pixabay.com/photo/2016/11/23/13/40/cellphone-1852898_1280.jpg",width="200px")
               ),
                             
               ##### Purpose of app
@@ -191,30 +191,58 @@ ui <- fluidPage(
             nav_panel(
               title = "Data Exploration",
               p(),
-              p("The tab will allow the user to obtain the numeric and graphical
-summaries noted from ‘Prepare for Your App’ section
-2
-∗ I want you to design how this part looks - whether you use subtabs, dynamic UI elements,
-etc.
-∗ The data should be subsetted when the user selects a subset (and clicks the previously mentioned
-button)
-∗ The user should be able to choose to display the categorical data summaries or the numeric
-variable summaries (you can choose to display graphs and numbers together or separately).
-∗ The user should be able to select which (categorical or numeric) variables they are summarizing
-and which variables are modifying the summary where appropriate.
-· For instance, they should be able to select numeric variable to find the means, medians,
-sds, etc. and select the categorical variable that these summaries should be found across.
-For plots, they should be able to select which variable might be on the x or y axis, the
-variable used for coloring, those kinds of things!
-∗ You should account for any error messages that pop up while changing the widgets (as done
-in the notes) and use loading spinners or other methods to display for any plot that takes a
-while to render.")
+
+              h3("Configuration"),
               
+              ### LEFT COL: pick summary type
+              column(
+                6,
+                radioButtons(
+                  inputId = "inSummaryType",
+                  label = "Type of Summary",
+                  choices = c("Categorical", "Numerical")
+                ),
+                selectizeInput(
+                  inputId = "inGroupByVar",
+                  label = "Group By",
+                  choices = c("~ None ~",catVars),
+                  multiple = FALSE,
+                  width = 200
+                )  
+              ),  
+              
+              ### RIGHT COL: choose vars to use in plots 
+              column(
+                6,
+                  selectizeInput(
+                  inputId = "inXVar",
+                  label = "X-axis",
+                  choices = numVars,
+                  multiple = FALSE,
+                  width = 200
+                ),
+                selectizeInput(
+                  inputId = "inYVar",
+                  label = "Y-axis",
+                  choices = numVars,
+                  multiple = FALSE,
+                  width = 200
+                )               
+            
+              ),
+                           
+              
+              
+              h3("Summaries"),
+              
+              
+              h3("Plots")
               ###
               #So, first is a space to select your variables using checkboxes
               #with groups for cat/num to clarify
               #these selections will automatically update (so no isolate stuff)
-              
+
+              #PULL WHAT I DID FROM PROTOTYPE!!!
               #next, select to show EITHER? cat or num summaries?
               
               #need a structure for display, grouping, etc.
@@ -223,6 +251,7 @@ while to render.")
               #vs those categories to GROUP ACROSS
               
               #plots
+              #PULL WHAT I DID FROM PROTOTYPE!!!
               #allow selection of the x, y, color - yikes
               
               #last of all, add in error checking and spinner viewers
