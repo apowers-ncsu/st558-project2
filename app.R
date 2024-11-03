@@ -207,19 +207,14 @@ ui <- fluidPage(
                   #show numerical selection if appropriate
                   conditionalPanel(
                     condition = "input.inSummaryType == 'Numerical'",
-                    uiOutput("outSummaryNumVar")  
+                    uiOutput("outSummaryNumVar"),
+                    uiOutput("outSummaryNumVarGroupBy")
                   ),                
-                  selectizeInput(
-                    inputId = "inGroupByVar1",
-                    label = "Group By (1)",
-                    choices = c("~ None ~",catVars),
-                    multiple = FALSE,
-                    width = 200
-                  ),
-                  #show extra group by selector if appropraite
+                  #show categorical selection if appropriate
                   conditionalPanel(
                     condition = "input.inSummaryType == 'Categorical'",
-                    uiOutput("outGroupByVar2")  
+                    uiOutput("outSummaryCatVar1"),
+                    uiOutput("outSummaryCatVar2")
                   )
                   
                 ),  
@@ -277,16 +272,8 @@ ui <- fluidPage(
               
               #last of all, add in error checking and spinner viewers
               
-            ),
-            
-            
-            
-            nav_spacer(),
-            nav_menu(
-              title = "Links",
-              nav_item("link_shiny"),
-              nav_item("link_posit")
             )
+
           )
            #plots etc.
         )
@@ -411,19 +398,28 @@ server <- function(input, output, session) {
     }
   })
   
-  #additional group by 2 (for categorical var summary only)
-  output$outGroupByVar2 <- renderUI({
+  #categorical var summary choices
+  #first one is req'd
+  output$outSummaryCatVar1 <- renderUI({
     selectizeInput(
-      inputId = "inGroupByVar2",
-      label = "Group By (2)",
-      choices = c("~ None ~",catVars),
+      inputId = "inSummaryCatVar1",
+      label = "Categorical Variable #1",
+      choices = catVars,
       multiple = FALSE,
       width = 200
-    ) 
-    
+    )
   })
-
-  #additional group by 2 (for categorical var summary only)
+  output$outSummaryCatVar2 <- renderUI({
+    selectizeInput(
+      inputId = "inSummaryCatVar2",
+      label = "Categorical Variable #2",
+      choices = c("~ None ~",catVars[catVars != input$inSummaryCatVar1]), #awesome easy way to restrict a duplicate!
+      multiple = FALSE,
+      width = 200
+    )     
+  })
+  
+  #numerical var summary choices
   output$outSummaryNumVar <- renderUI({
     selectizeInput(
       inputId = "inSummaryNumVar",
@@ -431,9 +427,19 @@ server <- function(input, output, session) {
       choices = numVars,
       multiple = FALSE,
       width = 200
-    ) 
-    
-  })  
+    )
+  })
+  output$outSummaryNumVarGroupBy <- renderUI({
+    selectizeInput(
+      inputId = "inSummaryNumVarGroupBy",
+      label = "Group by",
+      choices = c("~ None ~",catVars),
+      multiple = FALSE,
+      width = 200
+    )     
+  })
+  
+
 
 }
 
