@@ -320,7 +320,6 @@ server <- function(input, output, session) {
     
     #data table update
     output$outDTOutput <- renderDT({
-      #isolate(dt_subset()) #dont really understand isolate here but saw example and copied it
       dt_updated
     }) 
     
@@ -367,71 +366,76 @@ server <- function(input, output, session) {
         )      
     )
     
+    #BASE output for categorical table 
+    output$outSummaryCategorical <- renderDT({
+      dt_updated |>
+        group_by(catVars[1]) |>
+        summarize(count = n())
+    }) 
+    
+    #BASE output for numerical table
+    output$outSummaryNumerical <- renderDT({
+      dt_updated
+        ##### update here with proper num summary stuff
+    })
+    
+    #observe event of any edits / instances of IDs of interest?
+    #observeEvent(input$inSummaryType, {print("HI")
+    observe({
+    
+      output$outSummaryCategorical <-
+      if (input$inSummaryCatVar2 == "~ None ~") {
+              renderDT(
+                dt_updated |> 
+                  group_by(!!sym(input$inSummaryCatVar1)) |>
+                  summarize(count = n())
+              )
+          } else {
+            renderDT(
+              dt_updated |> 
+                group_by(!!sym(input$inSummaryCatVar1),!!sym(input$inSummaryCatVar2)) |>
+                summarize(count = n()) |>
+                pivot_wider(names_from = !!sym(input$inSummaryCatVar1), values_from = count)
+            )
+          }
+      
+      
+      
+    })
+    # must put all in the same observe for the button press
+    # 2 - issue is oooking for exists
+    # 3 - maybe i can do action of 'internalID" | id2 | oid3 where 
+    # the ids are just the fields themselves (as in, on the tab / editing now)
+    # there will be a second observe() within the button press panel that does the editing
+    #if no second group variable selected, just do single groupby
+    # first just subset it by the normal?    
+    
   })
   
-  #render summary table if button pressed at least once!
-  observeEvent(input$inProcessButton,{
+  #      if (input$inSummaryCatVar2 == "~ None ~") {
+  #      renderDT(
+  #        dt_updated |> 
+  #          group_by(!!sym(input$inSummaryCatVar1)) |>
+  #          summarize(count = n())
+  ###      )
+    #  } else {
+    #    renderDT(
+    #      dt_updated |> 
+    #        group_by(!!sym(input$inSummaryCatVar1),!!sym(input$inSummaryCatVar2)) |>
+    #        summarize(count = n()) |>
+    #        pivot_wider(names_from = !!sym(input$inSummaryCatVar1), values_from = count)
+    #    )
+    #  }
     
-    #update a subset table again, only if / when button pressed
-    dt_updated <- isolate(dt_subset())
-    
-    #output for categorical version
-    output$outSummaryCategorical <- 
-      
-      ####issue
-      ####I want to only work if dt_subset() has run,
-      ####but then I want this to update my group_by etc. if catvar2 or catvar1 changes
-      
-      #if no second group variable selected, just do single groupby
-      if (input$inSummaryCatVar2 == "~ None ~") {
-        renderDT(
-          dt_updated |> 
-            group_by(!!sym(input$inSummaryCatVar1)) |>
-            summarize(count = n())
-        )
-      } else {
-        renderDT(
-          dt_updated |> 
-            group_by(!!sym(input$inSummaryCatVar1),!!sym(input$inSummaryCatVar2)) |>
-            summarize(count = n()) |>
-            pivot_wider(names_from = !!sym(input$inSummaryCatVar1), values_from = count)
-        )
-      }
-    
-    #output for numerical version
-    output$outSummaryNumerical <- 
-      renderDT(
-        dt_updated |> 
-          group_by(input$inSummaryCatVar1)
-      )
-    
-  })
+#    #output for numerical version
+#    output$outSummaryNumerical <- 
+#      renderDT(
+#        dt_updated |> 
+#          group_by(input$inSummaryCatVar1)
+#      )
+#    
+#  })
   
-  #update if catvar1 or 2 changed
-  observe({
-    #if(isn)
-    if(exists("input$inSummaryCatVar1")) {
-        #output for categorical version
-    output$outSummaryCategorical <- 
-
-      #if no second group variable selected, just do single groupby
-      if (input$inSummaryCatVar2 == "~ None ~") {
-        renderDT(
-          dt_updated |> 
-            group_by(!!sym(input$inSummaryCatVar1)) |>
-            summarize(count = n())
-        )
-      } else {
-        renderDT(
-          dt_updated |> 
-            group_by(!!sym(input$inSummaryCatVar1),!!sym(input$inSummaryCatVar2)) |>
-            summarize(count = n()) |>
-            pivot_wider(names_from = !!sym(input$inSummaryCatVar1), values_from = count)
-        )
-      }
-    
-    }
-  })
   
   #render sliders
   output$outSlider1 <- renderUI({
