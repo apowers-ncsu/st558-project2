@@ -382,61 +382,26 @@ server <- function(input, output, session) {
     #observe event of any edits / instances of IDs of interest?
     #observeEvent(input$inSummaryType, {print("HI")
     observe({
-    
       output$outSummaryCategorical <-
-      if (input$inSummaryCatVar2 == "~ None ~") {
-              renderDT(
-                dt_updated |> 
-                  group_by(!!sym(input$inSummaryCatVar1)) |>
-                  summarize(count = n())
-              )
-          } else {
-            renderDT(
-              dt_updated |> 
-                group_by(!!sym(input$inSummaryCatVar1),!!sym(input$inSummaryCatVar2)) |>
-                summarize(count = n()) |>
-                pivot_wider(names_from = !!sym(input$inSummaryCatVar1), values_from = count)
-            )
-          }
-      
-      
+        if (input$inSummaryCatVar2 == "~ None ~") {
+          renderDT(
+            dt_updated |> 
+              group_by(!!sym(input$inSummaryCatVar1)) |>
+              summarize(count = n())
+          )
+        } else {
+          renderDT(
+            dt_updated |> 
+              group_by(!!sym(input$inSummaryCatVar1),!!sym(input$inSummaryCatVar2)) |>
+              summarize(count = n()) |>
+              pivot_wider(names_from = !!sym(input$inSummaryCatVar2), values_from = count)
+          )
+        }
       
     })
-    # must put all in the same observe for the button press
-    # 2 - issue is oooking for exists
-    # 3 - maybe i can do action of 'internalID" | id2 | oid3 where 
-    # the ids are just the fields themselves (as in, on the tab / editing now)
-    # there will be a second observe() within the button press panel that does the editing
-    #if no second group variable selected, just do single groupby
-    # first just subset it by the normal?    
-    
+
   })
-  
-  #      if (input$inSummaryCatVar2 == "~ None ~") {
-  #      renderDT(
-  #        dt_updated |> 
-  #          group_by(!!sym(input$inSummaryCatVar1)) |>
-  #          summarize(count = n())
-  ###      )
-    #  } else {
-    #    renderDT(
-    #      dt_updated |> 
-    #        group_by(!!sym(input$inSummaryCatVar1),!!sym(input$inSummaryCatVar2)) |>
-    #        summarize(count = n()) |>
-    #        pivot_wider(names_from = !!sym(input$inSummaryCatVar1), values_from = count)
-    #    )
-    #  }
-    
-#    #output for numerical version
-#    output$outSummaryNumerical <- 
-#      renderDT(
-#        dt_updated |> 
-#          group_by(input$inSummaryCatVar1)
-#      )
-#    
-#  })
-  
-  
+
   #render sliders
   output$outSlider1 <- renderUI({
     #####improve error checking?######
