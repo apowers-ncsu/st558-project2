@@ -9,6 +9,7 @@ catVars <- c("Model",
              "Gender",
              "AgeGroup",
              "UsageClass")
+runOnce <- FALSE
 
 #read in full data ONE TIME ONLY
 dt <- readr::read_csv("user_behavior_dataset.csv",col_names = TRUE)

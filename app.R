@@ -374,7 +374,7 @@ server <- function(input, output, session) {
     
     #update a subset table again, only if / when button pressed
     dt_updated <- isolate(dt_subset())
-    observe({
+    
     #output for categorical version
     output$outSummaryCategorical <- 
       
@@ -404,16 +404,13 @@ server <- function(input, output, session) {
         dt_updated |> 
           group_by(input$inSummaryCatVar1)
       )
-    })
+    
   })
   
-  
-  
-  ####### CORE STUFF TO REMOVE IF CAN FIX ABOVE WITH NESTED OBSERVES()
   #update if catvar1 or 2 changed
   observe({
     #if(isn)
-    #if(exists("input$inSummaryCatVar1")) {
+    if(exists("input$inSummaryCatVar1")) {
         #output for categorical version
     output$outSummaryCategorical <- 
 
@@ -433,7 +430,7 @@ server <- function(input, output, session) {
         )
       }
     
-    #}
+    }
   })
   
   #render sliders
