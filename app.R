@@ -31,15 +31,10 @@ ui <- fluidPage(
     ### action button to subset per selections (vs auto-sub as edited)
     sidebarLayout(
         sidebarPanel(
+          h3("Subset Configuration"),
           
-          #"go" button
-          actionButton(
-            inputId = "inProcessButton",
-            label = "Process Selections"
-          ),
-                    
           #categorical var selections
-          h3("Categorical Variables"),
+          h4("Categorical"),
           
           ### model
           radioButtons(
@@ -79,7 +74,7 @@ ui <- fluidPage(
           ),          
           
           #numerical var selections
-          h3("Numerical Variables"),
+          h4("Numerical"),
           
           #select any 2 from list
           selectizeInput(
@@ -107,8 +102,13 @@ ui <- fluidPage(
           conditionalPanel(
             condition = "input.inNumVars.length == 2",
             uiOutput("outSlider2")  
-          )
+          ),
 
+          #"go" button
+          actionButton(
+            inputId = "inProcessButton",
+            label = "Process Selections"
+          )
                     
         ),
 
@@ -192,43 +192,58 @@ ui <- fluidPage(
               title = "Data Exploration",
               p(),
 
-              h3("Configuration"),
-              
-              ### LEFT COL: pick summary type
+              h3("Display Configuration"),
               column(
-                6,
-                radioButtons(
-                  inputId = "inSummaryType",
-                  label = "Type of Summary",
-                  choices = c("Categorical", "Numerical")
-                ),
-                selectizeInput(
-                  inputId = "inGroupByVar",
-                  label = "Group By",
-                  choices = c("~ None ~",catVars),
-                  multiple = FALSE,
-                  width = 200
-                )  
-              ),  
-              
-              ### RIGHT COL: choose vars to use in plots 
-              column(
-                6,
+                12,         
+                ### LEFT COL: pick summary type
+                column(
+                  6,
+                  h4("Summary"),
+                  radioButtons(
+                    inputId = "inSummaryType",
+                    label = "Type",
+                    choices = c("Categorical", "Numerical")
+                  ),
                   selectizeInput(
-                  inputId = "inXVar",
-                  label = "X-axis",
-                  choices = numVars,
-                  multiple = FALSE,
-                  width = 200
-                ),
-                selectizeInput(
-                  inputId = "inYVar",
-                  label = "Y-axis",
-                  choices = numVars,
-                  multiple = FALSE,
-                  width = 200
-                )               
-            
+                    inputId = "inGroupByVar1",
+                    label = "Group By (1)",
+                    choices = c("~ None ~",catVars),
+                    multiple = FALSE,
+                    width = 200
+                  ),  
+                  #slider1 - conditional, only if inNumVars length >=1
+                  conditionalPanel(
+                    condition = "input.inSummaryType == 'Categorical'",
+                    uiOutput("outGroupByVar2")  
+                  )
+                ),  
+                
+                ### RIGHT COL: choose vars to use in plots 
+                column(
+                  6,
+                  h4("Plots"),
+                  selectizeInput(
+                    inputId = "inXVar",
+                    label = "X-axis",
+                    choices = numVars,
+                    multiple = FALSE,
+                    width = 200
+                  ),
+                  selectizeInput(
+                    inputId = "inYVar",
+                    label = "Y-axis",
+                    choices = numVars,
+                    multiple = FALSE,
+                    width = 200
+                  ),               
+                  selectizeInput(
+                    inputId = "inZVar",
+                    label = "Extra (Color/Fill)",
+                    choices = c("~ None ~",catVars),
+                    multiple = FALSE,
+                    width = 200
+                  )               
+                )
               ),
                            
               
@@ -388,6 +403,18 @@ server <- function(input, output, session) {
         label=input$inNumVars[2]
       )
     }
+  })
+  
+  #additional group by 2 (for cat vars only)
+  output$outGroupByVar2 <- renderUI({
+    selectizeInput(
+      inputId = "inGroupByVar2",
+      label = "Group By (2)",
+      choices = c("~ None ~",catVars),
+      multiple = FALSE,
+      width = 200
+    ) 
+    
   })
 
   
