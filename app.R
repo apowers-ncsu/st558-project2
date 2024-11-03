@@ -92,6 +92,11 @@ ui <- fluidPage(
                            )
             ),
           
+          #little dynamic text to note and "warn" about sliders
+          textOutput(
+            outputId = "outSliderText"
+          ),
+          
           #slider1 - conditional, only if inNumVars length >=1
           conditionalPanel(
             condition = "input.inNumVars.length >= 1",
@@ -103,6 +108,7 @@ ui <- fluidPage(
             condition = "input.inNumVars.length == 2",
             uiOutput("outSlider2")  
           )
+
                     
         ),
 
@@ -204,7 +210,26 @@ variable used for coloring, those kinds of things!
 in the notes) and use loading spinners or other methods to display for any plot that takes a
 while to render.")
               
+              ###
+              #So, first is a space to select your variables using checkboxes
+              #with groups for cat/num to clarify
+              #these selections will automatically update (so no isolate stuff)
+              
+              #next, select to show EITHER? cat or num summaries?
+              
+              #need a structure for display, grouping, etc.
+              
+              #also select the vars to SUMMARIZE
+              #vs those categories to GROUP ACROSS
+              
+              #plots
+              #allow selection of the x, y, color - yikes
+              
+              #last of all, add in error checking and spinner viewers
+              
             ),
+            
+            
             
             nav_spacer(),
             nav_menu(
@@ -232,31 +257,28 @@ server <- function(input, output, session) {
         if (input$inOS == "~ All ~") TRUE else input$inOS == dt$OS,
         if (input$inGender == "~ All ~") TRUE else input$inGender == dt$Gender,
         if (length(input$inAgeGroup) == 0) TRUE else dt$AgeGroup %in% input$inAgeGroup,
-        if (length(input$inUsageClass) == 0) TRUE else dt$UsageClass %in% input$inUsageClass
-      ) |>
-      
-      #subset according to numerical selections
-      filter(
+        if (length(input$inUsageClass) == 0) TRUE else dt$UsageClass %in% input$inUsageClass,
         #within slider1 range, if present
-        if (length(input$inNumVars)>=1) {
-          (dt[input$inNumVars[1]] >= input$inSlider1[1]) &
-          (dt[input$inNumVars[1]] <= input$inSlider1[2])
-        } else TRUE,
-
+        if (length(input$inNumVars)>=1)
+          (dt[input$inNumVars[1]] >= input$inSlider1[1]) & (dt[input$inNumVars[1]] <= input$inSlider1[2])
+        else TRUE,
         #within slider2 range, if present
-        if (length(input$inNumVars)==2) {
-          (dt[input$inNumVars[2]] >= input$inSlider2[1]) &
-            (dt[input$inNumVars[2]] <= input$inSlider2[2])
-        } else TRUE
-      )        
+        if (length(input$inNumVars)==2) 
+          (dt[input$inNumVars[2]] >= input$inSlider2[1]) & (dt[input$inNumVars[2]] <= input$inSlider2[2])
+        else TRUE
+      )
+      
   })
 
   #listen for button before taking action
   observeEvent(input$inProcessButton,{
     
+    dt_updated <- isolate(dt_subset())
+    
     #data table update
     output$outDTOutput <- renderDT({
-      isolate(dt_subset()) #dont really understand isolate here but saw example and copied it
+      #isolate(dt_subset()) #dont really understand isolate here but saw example and copied it
+      dt_updated
     }) 
     
     #output / render for download function
@@ -269,8 +291,37 @@ server <- function(input, output, session) {
         )
       },
       content = function(con) {
-        write.csv(dt_subset(), con)
+        write.csv(dt_updated, con)
       }
+    )
+    
+    #render dynamic text note about any sliders
+    output$outSliderText <- renderText(
+      if(length(input$inNumVars)>=1)
+        paste(
+          "Slider range reflects unfiltered data. ",
+          "Per the most recent application of Process Selections, the available data ranges for each numerical var were: ",
+          "[",
+          input$inNumVars[1],
+          ": ",
+          min(dt_updated[input$inNumVars[1]]),
+          "..",
+          max(dt_updated[input$inNumVars[1]]),
+          "]  ",
+          if(length(input$inNumVars)==2) {
+            paste(
+              "[",
+              input$inNumVars[2],
+              ": ",
+              min(dt_updated[input$inNumVars[2]]),
+              "..",
+              max(dt_updated[input$inNumVars[2]]),
+              "]  ",
+              sep=''
+            )
+          },
+          sep=''
+        )      
     )
     
   })
