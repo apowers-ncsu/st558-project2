@@ -246,11 +246,17 @@ ui <- fluidPage(
                   )               
                 )
               ),
-                           
-              
               
               h3("Summaries"),
-              
+              #render table per selections
+              conditionalPanel(
+                condition = "input.inSummaryType == 'Categorical'",
+                DTOutput(outputId="outSummaryCategorical")
+              ),
+              conditionalPanel(
+                condition = "input.inSummaryType == 'Numerical'",
+                DTOutput(outputId="outSummaryNumerical")
+              ),              
               
               h3("Plots")
               ###
@@ -363,6 +369,73 @@ server <- function(input, output, session) {
     
   })
   
+  #render summary table if button pressed at least once!
+  observeEvent(input$inProcessButton,{
+    
+    #update a subset table again, only if / when button pressed
+    dt_updated <- isolate(dt_subset())
+    observe({
+    #output for categorical version
+    output$outSummaryCategorical <- 
+      
+      ####issue
+      ####I want to only work if dt_subset() has run,
+      ####but then I want this to update my group_by etc. if catvar2 or catvar1 changes
+      
+      #if no second group variable selected, just do single groupby
+      if (input$inSummaryCatVar2 == "~ None ~") {
+        renderDT(
+          dt_updated |> 
+            group_by(!!sym(input$inSummaryCatVar1)) |>
+            summarize(count = n())
+        )
+      } else {
+        renderDT(
+          dt_updated |> 
+            group_by(!!sym(input$inSummaryCatVar1),!!sym(input$inSummaryCatVar2)) |>
+            summarize(count = n()) |>
+            pivot_wider(names_from = !!sym(input$inSummaryCatVar1), values_from = count)
+        )
+      }
+    
+    #output for numerical version
+    output$outSummaryNumerical <- 
+      renderDT(
+        dt_updated |> 
+          group_by(input$inSummaryCatVar1)
+      )
+    })
+  })
+  
+  
+  
+  ####### CORE STUFF TO REMOVE IF CAN FIX ABOVE WITH NESTED OBSERVES()
+  #update if catvar1 or 2 changed
+  observe({
+    #if(isn)
+    #if(exists("input$inSummaryCatVar1")) {
+        #output for categorical version
+    output$outSummaryCategorical <- 
+
+      #if no second group variable selected, just do single groupby
+      if (input$inSummaryCatVar2 == "~ None ~") {
+        renderDT(
+          dt_updated |> 
+            group_by(!!sym(input$inSummaryCatVar1)) |>
+            summarize(count = n())
+        )
+      } else {
+        renderDT(
+          dt_updated |> 
+            group_by(!!sym(input$inSummaryCatVar1),!!sym(input$inSummaryCatVar2)) |>
+            summarize(count = n()) |>
+            pivot_wider(names_from = !!sym(input$inSummaryCatVar1), values_from = count)
+        )
+      }
+    
+    #}
+  })
+  
   #render sliders
   output$outSlider1 <- renderUI({
     #####improve error checking?######
@@ -413,7 +486,7 @@ server <- function(input, output, session) {
     selectizeInput(
       inputId = "inSummaryCatVar2",
       label = "Categorical Variable #2",
-      choices = c("~ None ~",catVars[catVars != input$inSummaryCatVar1]), #awesome easy way to restrict a duplicate!
+      choices = c("~ None ~",catVars),#[catVars != input$inSummaryCatVar1]), #awesome easy way to restrict a duplicate!
       multiple = FALSE,
       width = 200
     )     
