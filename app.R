@@ -10,11 +10,12 @@ library(tidyverse)
 #vars and core data read into variable 'dt'
 source("myhelpers.R")
 
-# UI definition
-### somewhere must use dynamic text
+#######################################################
+# UI
+#######################################################
 ui <- fluidPage(
 
-  # Application title panel
+  # title
   titlePanel("Project 2: Exploring Mobile Device Data"),
 
   #author
@@ -24,12 +25,13 @@ ui <- fluidPage(
       href="mailto:apowers@ncsu.edu",
       "apowers@ncsu.edu")
     ),
-
-  # sidebar with widgets for subsetting
-  ### 2+ categorical vars: offer select levels as well as 'all'
-  ### 2+ numeric variable: dynamic method for slider 
-  ### action button to subset per selections (vs auto-sub as edited)
+  
+  #typical sidebar style setup
   sidebarLayout(
+
+    ##########################################
+    # Sidebar
+    ##########################################
     sidebarPanel(
       width=2,
       h3("Subset Configuration"),
@@ -66,7 +68,7 @@ ui <- fluidPage(
         selected = attributes(dt$AgeGroup)$levels
       ),          
       
-      ### classes
+      ### usage classes
       checkboxGroupInput(
         inputId = "inUsageClass",
         label = "Usage Class",
@@ -83,16 +85,24 @@ ui <- fluidPage(
         label = "Select 0-2 variables to subset",
         choices = numVars,
         multiple = TRUE,
-        options = list(maxItems = 2,
-                       plugins = c("clear_button")
-                       )
-        ),
+        options = list(
+          maxItems = 2,
+          plugins = c("clear_button")
+        )
+      ),
       
       #little dynamic text to note and "warn" about sliders
       textOutput(
         outputId = "outSliderText"
       ),
-      
+      textOutput(
+        outputId = "outSliderTextRange1"
+      ),
+      textOutput(
+        outputId = "outSliderTextRange2"
+      ),
+      br(),
+            
       #slider1 - conditional, only if inNumVars length >=1
       conditionalPanel(
         condition = "input.inNumVars.length >= 1",
@@ -110,14 +120,19 @@ ui <- fluidPage(
         inputId = "inProcessButton",
         label = "Process Selections"
       )
-                
     ),
-
-    # main panel with tabs
+    
+    ##########################################
+    # Main Panel
+    ##########################################
     mainPanel(
+      
+      #using pill tab structure
       navset_pill(
         
-        ### About tab, default start
+        ##########################################
+        # About - Tab (default)
+        ##########################################
         nav_panel(
           title = "About",
           p(),
@@ -162,7 +177,9 @@ ui <- fluidPage(
           )
         ),
         
-        ### Data Download tab
+        ##########################################
+        # Data Download - Tab
+        ##########################################
         nav_panel(
           title = "Data Download",
           p(),
@@ -174,56 +191,57 @@ ui <- fluidPage(
           ),
           p(),
                         
-          ##### display with dataTableOutput / renderDataTable
+          ##### display DT
           DTOutput(outputId="outDTOutput")
         ),
         
-        
-        
-        ### Data Exploration tab
-        ##### obtain the num/graph summaries from the prototype build contents
-        ##### design as I like - subtabs, dynamic UI, etc.
-        ##### subset when selected/action
-        ##### user can display cat or num var summaries
-        ##### user selects any cat or num vars to summarize, plus any modifying the summary
-        ####### for ex: select num var for num summary, plus cat var to summarize across
-        ####### for ex: plots, select which var on x or y, coloring, etc.
-        ##### account for error messages, plus loading spinners for waits
+        ##########################################
+        # Data Exploration - Tab
+        ##########################################
         nav_panel(
           title = "Data Exploration",
           p(),
-
+          
+          ##########################################
+          # Display Configuration - Section
+          ##########################################
           h3("Display Configuration"),
           column(
-            12,         
-            ### LEFT COL: pick summary type
-            column(
+            12,     
+            
+            #left column for Summary settings
+            column( 
               6,
               h4("Summary"),
+              
+              #select cat or num
               radioButtons(
                 inputId = "inSummaryType",
                 label = "Type",
                 choices = c("Categorical", "Numerical")
               ),
-              #show numerical selection if appropriate
+              
+              #show numerical options if appropriate
               conditionalPanel(
                 condition = "input.inSummaryType == 'Numerical'",
                 uiOutput("outSummaryNumVar"),
                 uiOutput("outSummaryNumVarGroupBy")
-              ),                
-              #show categorical selection if appropriate
+              ),            
+              
+              #show categorical options if appropriate
               conditionalPanel(
                 condition = "input.inSummaryType == 'Categorical'",
                 uiOutput("outSummaryCatVar1"),
                 uiOutput("outSummaryCatVar2")
               )
-              
             ),  
             
-            ### RIGHT COL: choose vars to use in plots 
+            #right column for Plot settings
             column(
               6,
               h4("Plots"),
+              
+              #x var - numeric, defaults to item 1, required
               selectizeInput(
                 inputId = "inXVar",
                 label = "Primary (x)",
@@ -232,6 +250,8 @@ ui <- fluidPage(
                 width = 200,
                 selected = numVars[1]
               ),
+              
+              #y var - numeric, defaults to item 2, required
               selectizeInput(
                 inputId = "inYVar",
                 label = "Secondary (y)",
@@ -240,6 +260,8 @@ ui <- fluidPage(
                 width = 200,
                 selected = numVars[2]
               ),               
+              
+              #"z" var - category, defaults to item 1, may select special 'none' item
               selectizeInput(
                 inputId = "inZVar",
                 label = "Category (Color/Fill/Facet)",
@@ -248,6 +270,8 @@ ui <- fluidPage(
                 width = 200,
                 selected = catVars[1]
               ),
+              
+              #extra var z2 - category used only for box/whisker chart, defaults to item 2, required
               selectizeInput(
                 inputId = "inZVar2",
                 label = "Category 2 (Whisker only)",
@@ -255,12 +279,16 @@ ui <- fluidPage(
                 multiple = FALSE,
                 width = 200,
                 selected = catVars[2]
-              )   
+              ) 
             )
           ),
           
+          ##########################################
+          # Summaries - Section
+          ##########################################          
           h3("Summaries"),
-          #render table per selections
+          
+          #render table as cat or numeric, per selection
           conditionalPanel(
             condition = "input.inSummaryType == 'Categorical'",
             DTOutput(outputId="outSummaryCategorical")
@@ -270,181 +298,180 @@ ui <- fluidPage(
             DTOutput(outputId="outSummaryNumerical")
           ),              
           
+          ##########################################
+          # Plots - Section
+          ##########################################
           h3("Plots"),
-          #render various plots
+          
+          #split two plots to half-width
           column(
             12,
+            
+            #density plot
             column(
               6,
-              #density
               plotOutput(
-                outputId = "outDensityPlot"#,
-                #width = "50%"
+                outputId = "outDensityPlot"
               )
             ),
+            
+            #filled density plot
             column(
               6,
-              #filled density
               plotOutput(
                 outputId = "outFilledDensityPlot"
               )
             )
           ),
+          
+          #split two plots to half-width          
           column(
             12,
+            
+            #whisker plot
             column(
               6,
-              #density
               plotOutput(
-                outputId = "outBoxWhiskerPlot"#,
-                #width = "50%"
+                outputId = "outBoxWhiskerPlot"
               )
             ),
+            
+            #scatter plot
             column(
               6,
-              #Scatter
               plotOutput(
                 outputId = "outScatterPlot"
               )
             )
           ),
+          
+          #full width bin plot
           column(
             12,
-            #bin2d
             plotOutput(
-              outputId = "outBin2DPlot"#,
-              #width = "50%"
+              outputId = "outBin2DPlot"
             )
           ),
+          
+          #full width step plot with facets
           column(
             12,
             plotOutput(
               outputId = "outStepPlot"
             )
           )
-            
-              
-          
-          ###
-          #So, first is a space to select your variables using checkboxes
-          #with groups for cat/num to clarify
-          #these selections will automatically update (so no isolate stuff)
-
-          #PULL WHAT I DID FROM PROTOTYPE!!!
-          #next, select to show EITHER? cat or num summaries?
-          
-          #need a structure for display, grouping, etc.
-          
-          #also select the vars to SUMMARIZE
-          #vs those categories to GROUP ACROSS
-          
-          #plots
-          #PULL WHAT I DID FROM PROTOTYPE!!!
-          #allow selection of the x, y, color - yikes
-          
-          #last of all, add in error checking and spinner viewers
-          
         )
-
       )
-       #plots etc.
     )
   )
 )
 
-# server definition
-### somewhere must use dynamic text#############################################
+#######################################################
+# Server
+#######################################################
 server <- function(input, output, session) {
   
-  #Make reactive environment subset version of dt
+  #######################################################
+  # Data Table Subset - reactive
+  #######################################################
   dt_subset <- reactive({
-    dt |>
-      
-      #subset according to categorical selections
+    
+    #start with full data table from source, subset by cat/num sidebar selections
+    dt |> 
       filter(
+        #categorical subsets
         if (input$inModel == "~ All ~") TRUE else input$inModel == dt$Model,
         if (input$inOS == "~ All ~") TRUE else input$inOS == dt$OS,
         if (input$inGender == "~ All ~") TRUE else input$inGender == dt$Gender,
         if (length(input$inAgeGroup) == 0) TRUE else dt$AgeGroup %in% input$inAgeGroup,
         if (length(input$inUsageClass) == 0) TRUE else dt$UsageClass %in% input$inUsageClass,
-        #within slider1 range, if present
+        
+        #numeric slider1 range, if present
         if (length(input$inNumVars)>=1)
           (dt[input$inNumVars[1]] >= input$inSlider1[1]) & (dt[input$inNumVars[1]] <= input$inSlider1[2])
         else TRUE,
-        #within slider2 range, if present
+        
+        #numeric slider2 range, if present
         if (length(input$inNumVars)==2) 
           (dt[input$inNumVars[2]] >= input$inSlider2[1]) & (dt[input$inNumVars[2]] <= input$inSlider2[2])
         else TRUE
       )
-      
   })
 
-  #listen for button before taking action
+  #######################################################
+  # Observe Event for Button Press - control all relevant updates
+  #######################################################
   observeEvent(input$inProcessButton,{
     
+    #save subsetted dt
     dt_updated <- isolate(dt_subset())
     
-    #data table update
+    #render updated dt
     output$outDTOutput <- renderDT({
       dt_updated
     }) 
     
-    #output / render for download function
-    output$outDownloadButton <- downloadHandler(
-      filename = function() {
-        paste('data-',
-              Sys.Date(),
-              '.csv',
-              sep=''
-        )
-      },
-      content = function(con) {
-        write.csv(dt_updated, con)
-      }
-    )
+    #######################################################
+    # Slider Notes - dynamic text
+    #######################################################
     
-    #render dynamic text note about any sliders
+    #line1
     output$outSliderText <- renderText(
       if(length(input$inNumVars)>=1)
         paste(
-          "Slider range reflects unfiltered data. ",
-          "Per the most recent application of Process Selections, the available data ranges for each numerical var were: ",
-          "[",
-          input$inNumVars[1],
-          ": ",
-          min(dt_updated[input$inNumVars[1]]),
-          "..",
-          max(dt_updated[input$inNumVars[1]]),
-          "]  ",
-          if(length(input$inNumVars)==2) {
-            paste(
-              "[",
-              input$inNumVars[2],
-              ": ",
-              min(dt_updated[input$inNumVars[2]]),
-              "..",
-              max(dt_updated[input$inNumVars[2]]),
-              "]  ",
-              sep=''
-            )
-          },
+          "Slider ranges based on unfiltered data. As of last subset, available ranges were: ",
           sep=''
         )      
     )
     
-    #edit the exploration displays accordingly
-    observe({ req(input$inSummaryCatVar1)
-      #abort THIS WHOLE BLOCK if tab not yet opened
-      #covers a single variable in display to start
+    #slider1 range
+    output$outSliderTextRange1 <- renderText(
+      if(length(input$inNumVars)>=1)
+        paste(
+          input$inNumVars[1],
+          ": [",
+          min(dt_updated[input$inNumVars[1]]),
+          "..",
+          max(dt_updated[input$inNumVars[1]]),
+          "]",
+          sep=''
+        )      
+    )   
+    
+    #slider2 range
+    output$outSliderTextRange2 <- renderText(
+      if(length(input$inNumVars)==2)
+        paste(
+          input$inNumVars[2],
+          ": [",
+          min(dt_updated[input$inNumVars[2]]),
+          "..",
+          max(dt_updated[input$inNumVars[2]]),
+          "]  ",
+          sep=''
+        )      
+    )      
+    
+    #######################################################
+    # RENDER ALL Data Exploration - REQUIRES tab field opened/exists
+    #######################################################
+    observe({ 
+      req(input$inSummaryCatVar1)
       
-      #cat summary update IF I have seen CatVar2 set (opened the panel)
+      #######################################################
+      # Render categorical summary 
+      #######################################################
       output$outSummaryCategorical <-
-        if (input$inSummaryCatVar2 == "~ None ~") {
+        
+        #render into a 1-way contingency table
+        if (input$inSummaryCatVar2 == "~ None ~") { 
           renderDT({
             dt_updated |> 
               group_by(!!sym(input$inSummaryCatVar1)) |>
               summarize(count = n())
           })
+        
+        #render into a 2-way contingency table
         } else {
           renderDT({
             dt_updated |> 
@@ -454,41 +481,62 @@ server <- function(input, output, session) {
           })
         }
       
-      #num summary update IF I have seen NumVarGroupBy (opened the conditional panel)
-      observe({ req(input$inSummaryNumVarGroupBy)
-        #condition this whole block on whether the numerical cat has been INIT
-        
+      #######################################################
+      # Render numerical summary - REQUIRES 'numerical' button initiated
+      #######################################################
+      observe({ 
+        req(input$inSummaryNumVarGroupBy)
         output$outSummaryNumerical <- 
-          if (input$inSummaryNumVarGroupBy == "~ None ~") {
+          
+          #render as aggregate numerical summary
+          if (input$inSummaryNumVarGroupBy == "~ None ~") { 
             renderDT({
               dt_updated |>
+                
+                #keep numvar
                 select(!!sym(input$inSummaryNumVar)) |>
-                summarize(across(where(is.numeric),
-                                 list("mean" = ~ round(mean(.x),digits=3),
-                                      "median" = ~ round(median(.x),digits=3),
-                                      "sd" = ~ round(sd(.x),digits=3),
-                                      "iqr" = ~ round(IQR(.x),digits=3),
-                                      "n" = ~ n()
-                               )))
+                
+                #summarize with key metrics
+                summarize(across(
+                  where(is.numeric),
+                  list("mean" = ~ round(mean(.x),digits=3),
+                       "median" = ~ round(median(.x),digits=3),
+                       "sd" = ~ round(sd(.x),digits=3),
+                       "iqr" = ~ round(IQR(.x),digits=3),
+                       "n" = ~ n()
+                  )
+                ))
             })
+            
+          #render as grouped num summary by cat grouping var
           } else {
             renderDT({
               dt_updated |>
+                
+                #keep numvar and grouping cat var
                 select(!!sym(input$inSummaryNumVar),
                        !!sym(input$inSummaryNumVarGroupBy)) |>
+                
+                #group by cat var
                 group_by(!!sym(input$inSummaryNumVarGroupBy)) |>
-                summarize(across(where(is.numeric),
-                                 list("mean" = ~ round(mean(.x),digits=3),
-                                      "median" = ~ round(median(.x),digits=3),
-                                      "sd" = ~ round(sd(.x),digits=3),
-                                      "iqr" = ~ round(IQR(.x),digits=3),
-                                      "n" = ~ n()
-                                 )))
+                
+                #summarize with key metrics
+                summarize(across(
+                  where(is.numeric),
+                  list("mean" = ~ round(mean(.x),digits=3),
+                       "median" = ~ round(median(.x),digits=3),
+                       "sd" = ~ round(sd(.x),digits=3),
+                       "iqr" = ~ round(IQR(.x),digits=3),
+                       "n" = ~ n()
+                  )
+                ))
             })
           }
-      })   #END #condition this whole block on whether the numerical cat has been INIT
+      })
       
-      #update density plot, predicate on xvar having been initialized
+      #######################################################
+      # Render density plot
+      #######################################################
       output$outDensityPlot <- renderPlot({
         g <- ggplot(dt_updated)
         g + 
@@ -505,7 +553,9 @@ server <- function(input, output, session) {
           )
       })
       
-      #update FILLED density plot
+      #######################################################
+      # Render filled density plot
+      #######################################################
       output$outFilledDensityPlot <- renderPlot({
         g <- ggplot(dt_updated)
         g + 
@@ -532,7 +582,9 @@ server <- function(input, output, session) {
           )
       })
       
-      #update box and whisker plot
+      #######################################################
+      # Render box-and-whisker plot
+      #######################################################
       output$outBoxWhiskerPlot <- renderPlot({
         g <- ggplot(dt_updated)
         g + 
@@ -555,7 +607,9 @@ server <- function(input, output, session) {
           )
       })
       
-      #update scatter plot
+      #######################################################
+      # Render scatter plot
+      #######################################################
       output$outScatterPlot <- renderPlot({
         g <- ggplot(dt_updated)
         
@@ -573,11 +627,11 @@ server <- function(input, output, session) {
                   input$inXVar,
                   " by ",
                   input$inYVar,
-                  #" per ",
-                  #input$inZVar,
                   sep=""
                 )
             )
+        
+        #include color if z var non-'none'
         else
           g + 
           geom_point(
@@ -599,7 +653,9 @@ server <- function(input, output, session) {
           )
       })
       
-      #bin2d
+      #######################################################
+      # Render bin-2d plot
+      #######################################################
       output$outBin2DPlot <- renderPlot({
         g <- ggplot(dt_updated)
         g + 
@@ -645,6 +701,21 @@ server <- function(input, output, session) {
       })
 
     })
+    
+    #download csv button
+    output$outDownloadButton <- downloadHandler(
+      filename = function() {
+        paste('data-',
+              Sys.Date(),
+              '.csv',
+              sep=''
+        )
+      },
+      content = function(con) {
+        write.csv(dt_updated, con)
+      }
+    )
+    
 
   })
 
