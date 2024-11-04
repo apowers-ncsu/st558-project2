@@ -307,6 +307,17 @@ ui <- fluidPage(
                 outputId = "outScatterPlot"
               )
             )
+          ),
+          column(
+            12,
+            column(
+              6,
+              #bin2d
+              plotOutput(
+                outputId = "outBin2DPlot"#,
+                #width = "50%"
+              )
+            )
           )
               
           
@@ -579,6 +590,27 @@ server <- function(input, output, session) {
                 input$inYVar,
                 " per ",
                 input$inZVar,
+                sep=""
+              )
+          )
+      })
+      
+      #bin2d
+      output$outBin2DPlot <- renderPlot({
+        g <- ggplot(dt_updated)
+        g + 
+          geom_bin2d(
+            aes(x=!!sym(input$inXVar),
+                y=!!sym(input$inYVar)
+            ),
+            binwidth=0.25
+          ) +
+          labs(
+            title=
+              paste(
+                input$inXVar,
+                " by ",
+                input$inYVar,
                 sep=""
               )
           )
