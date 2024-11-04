@@ -130,6 +130,7 @@ ui <- fluidPage(
     # Main Panel
     ##########################################
     mainPanel(
+      width=10,
       
       #using pill tab structure
       navset_pill(
@@ -209,159 +210,159 @@ ui <- fluidPage(
           ##########################################
           # Display Configuration - Section
           ##########################################
-          h3("Display Configuration"),
           column(
-            12,     
+            2,     
             
-            #left column for Summary settings
-            column( 
-              6,
-              h4("Summary"),
-              
-              #select cat or num
-              radioButtons(
-                inputId = "inSummaryType",
-                label = "Type",
-                choices = c("Categorical", "Numerical")
-              ),
-              
-              #show numerical options if appropriate
-              conditionalPanel(
-                condition = "input.inSummaryType == 'Numerical'",
-                uiOutput("outSummaryNumVar"),
-                uiOutput("outSummaryNumVarGroupBy")
-              ),            
-              
-              #show categorical options if appropriate
-              conditionalPanel(
-                condition = "input.inSummaryType == 'Categorical'",
-                uiOutput("outSummaryCatVar1"),
-                uiOutput("outSummaryCatVar2")
-              )
-            ),  
+            h3("Display Configuration"),
             
-            #right column for Plot settings
-            column(
-              6,
-              h4("Plots"),
-              
-              #x var - numeric, defaults to item 1, required
-              selectizeInput(
-                inputId = "inXVar",
-                label = "Primary (x)",
-                choices = numVars,
-                multiple = FALSE,
-                width = 200,
-                selected = numVars[1]
-              ),
-              
-              #y var - numeric, defaults to item 2, required
-              selectizeInput(
-                inputId = "inYVar",
-                label = "Secondary (y)",
-                choices = numVars,
-                multiple = FALSE,
-                width = 200,
-                selected = numVars[2]
-              ),               
-              
-              #"z" var - category, defaults to item 1, may select special 'none' item
-              selectizeInput(
-                inputId = "inZVar",
-                label = "Category (Color/Fill/Facet)",
-                choices = c("~ None ~",catVars),
-                multiple = FALSE,
-                width = 200,
-                selected = catVars[1]
-              ),
-              
-              #extra var z2 - category used only for box/whisker chart, defaults to item 2, required
-              selectizeInput(
-                inputId = "inZVar2",
-                label = "Category 2 (Whisker only)",
-                choices = catVars,
-                multiple = FALSE,
-                width = 200,
-                selected = catVars[2]
-              ) 
-            )
+            #summary variable configs
+            h4("Summary"),
+            
+            #select cat or num
+            radioButtons(
+              inputId = "inSummaryType",
+              label = "Type",
+              choices = c("Categorical", "Numerical")
+            ),
+            
+            #show numerical options if appropriate
+            conditionalPanel(
+              condition = "input.inSummaryType == 'Numerical'",
+              uiOutput("outSummaryNumVar"),
+              uiOutput("outSummaryNumVarGroupBy")
+            ),            
+            
+            #show categorical options if appropriate
+            conditionalPanel(
+              condition = "input.inSummaryType == 'Categorical'",
+              uiOutput("outSummaryCatVar1"),
+              uiOutput("outSummaryCatVar2")
+            ),
+            
+            #plot variable configs
+            h4("Plots"),
+            
+            #x var - numeric, defaults to item 1, required
+            selectizeInput(
+              inputId = "inXVar",
+              label = "Primary (x)",
+              choices = numVars,
+              multiple = FALSE,
+              width = 200,
+              selected = numVars[1]
+            ),
+            
+            #y var - numeric, defaults to item 2, required
+            selectizeInput(
+              inputId = "inYVar",
+              label = "Secondary (y)",
+              choices = numVars,
+              multiple = FALSE,
+              width = 200,
+              selected = numVars[2]
+            ),               
+            
+            #"z" var - category, defaults to item 1, may select special 'none' item
+            selectizeInput(
+              inputId = "inZVar",
+              label = "Category (Color/Fill/Facet)",
+              choices = c("~ None ~",catVars),
+              multiple = FALSE,
+              width = 200,
+              selected = catVars[1]
+            ),
+            
+            #extra var z2 - category used only for box/whisker chart, defaults to item 2, required
+            selectizeInput(
+              inputId = "inZVar2",
+              label = "Category 2 (Whisker only)",
+              choices = catVars,
+              multiple = FALSE,
+              width = 200,
+              selected = catVars[2]
+            ) 
           ),
           
-          ##########################################
-          # Summaries - Section
-          ##########################################          
-          h3("Summaries"),
-          
-          #render table as cat or numeric, per selection
-          conditionalPanel(
-            condition = "input.inSummaryType == 'Categorical'",
-            DTOutput(outputId="outSummaryCategorical")
-          ),
-          conditionalPanel(
-            condition = "input.inSummaryType == 'Numerical'",
-            DTOutput(outputId="outSummaryNumerical")
-          ),              
-          
-          ##########################################
-          # Plots - Section
-          ##########################################
-          h3("Plots"),
-          
-          #split two plots to half-width
+          #main display region
           column(
-            12,
+            10,
             
-            #density plot
+            ##########################################
+            # Summaries - Section
+            ########################################## 
+            h3("Summaries"),
+            
+            #render table as cat or numeric, per selection
+            conditionalPanel(
+              condition = "input.inSummaryType == 'Categorical'",
+              DTOutput(outputId="outSummaryCategorical")
+            ),
+            conditionalPanel(
+              condition = "input.inSummaryType == 'Numerical'",
+              DTOutput(outputId="outSummaryNumerical")
+            ),              
+            
+            ##########################################
+            # Plots - Section
+            ##########################################
+            h3("Plots"),
+            
+            #split two plots to half-width
             column(
-              6,
-              plotOutput(
-                outputId = "outDensityPlot"
+              12,
+              
+              #density plot
+              column(
+                6,
+                plotOutput(
+                  outputId = "outDensityPlot"
+                )
+              ),
+              
+              #filled density plot
+              column(
+                6,
+                plotOutput(
+                  outputId = "outFilledDensityPlot"
+                )
               )
             ),
             
-            #filled density plot
+            #split two plots to half-width          
             column(
-              6,
-              plotOutput(
-                outputId = "outFilledDensityPlot"
-              )
-            )
-          ),
-          
-          #split two plots to half-width          
-          column(
-            12,
-            
-            #whisker plot
-            column(
-              6,
-              plotOutput(
-                outputId = "outBoxWhiskerPlot"
+              12,
+              
+              #whisker plot
+              column(
+                6,
+                plotOutput(
+                  outputId = "outBoxWhiskerPlot"
+                )
+              ),
+              
+              #scatter plot
+              column(
+                6,
+                plotOutput(
+                  outputId = "outScatterPlot"
+                )
               )
             ),
             
-            #scatter plot
+            #full width bin plot
             column(
-              6,
+              12,
               plotOutput(
-                outputId = "outScatterPlot"
+                outputId = "outBin2DPlot"
               )
-            )
-          ),
-          
-          #full width bin plot
-          column(
-            12,
-            plotOutput(
-              outputId = "outBin2DPlot"
-            )
-          ),
-          
-          #full width step plot with facets
-          column(
-            12,
-            plotOutput(
-              outputId = "outStepPlot"
+            ),
+            
+            #full width step plot with facets
+            column(
+              12,
+              plotOutput(
+                outputId = "outStepPlot"
+              )
             )
           )
         )
