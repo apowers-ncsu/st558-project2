@@ -104,9 +104,6 @@ ui <- fluidPage(
             uiOutput("outSlider2")  
           ),
           
-          #note about my error
-          p("NOTE: Clicking the button before opening Data Exploration will crash."),
-
           #"go" button
           actionButton(
             inputId = "inProcessButton",
@@ -247,7 +244,8 @@ ui <- fluidPage(
                     label = "Extra (Color/Fill)",
                     choices = c("~ None ~",catVars),
                     multiple = FALSE,
-                    width = 200
+                    width = 200,
+                    selected = catVars[1]
                   )               
                 )
               ),
@@ -265,18 +263,17 @@ ui <- fluidPage(
               
               h3("Plots"),
               #render various plots
+              
+              #density
               plotOutput(
                 outputId = "outDensityPlot"#,
                 #width = "50%"
+              ),
+              
+              #filled density
+              plotOutput(
+                outputId = "outFilledDensityPlot"
               )
-              #g <- ggplot((data), aes(x = Apps))
-              #g <- ggplot(data)
-              #g + 
-              #  geom_density(aes(x=Apps)) +
-              #  labs(
-              #    title="Density by App Count",
-              #    x="Count of Apps"
-              #  )
               
               
               ###
@@ -484,7 +481,6 @@ server <- function(input, output, session) {
       
       #update density plot, predicate on xvar having been initialized
       output$outDensityPlot <- renderPlot({
-        g <- ggplot((dt_updated), aes(x = !!sym(input$inXVar)))
         g <- ggplot(dt_updated)
         g + 
           geom_density(aes(x = !!sym(input$inXVar))) +
@@ -499,6 +495,34 @@ server <- function(input, output, session) {
             y="Density"
           )
       })
+      
+      #update FILLED density plot
+      output$outFilledDensityPlot <- renderPlot({
+        g <- ggplot(dt_updated)
+        g + 
+          geom_density(
+            aes(x = !!sym(input$inXVar),
+                fill = !!sym(input$inZVar)),
+            position = "fill") +
+          labs(
+            title=
+              paste(
+                "Filled Density per ",
+                input$inZVar,
+                " by ",
+                input$inXVar,
+                sep=""
+              ),
+            x=input$inXVar,
+            y=
+              paste(
+                "Density per ",
+                input$inZVar,
+                sep=""
+              )
+          )
+      })
+      
         
     })
 
