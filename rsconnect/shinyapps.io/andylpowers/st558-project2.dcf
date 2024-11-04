@@ -1,0 +1,12 @@
+name: st558-project2
+title: st558-project2
+username: andylpowers
+account: andylpowers
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13220707
+bundleId: 9311637
+url: https://andylpowers.shinyapps.io/st558-project2/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

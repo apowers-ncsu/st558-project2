@@ -1,6 +1,9 @@
 # This app will enable exploration of data representing mobile device attributes and behaviors.
 # For further references, see associated [Quarto file](static-app-prototype.qmd).
 
+# Live at: https://andylpowers.shinyapps.io/st558-project2/
+# Github Repo URL: https://github.com/apowers-ncsu/st558-project2
+
 # WISHES / TO DOs
 #1. Improve light error handling/messaging
 #2. Decouple the edits to summary from the invalidation of plots
