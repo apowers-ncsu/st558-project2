@@ -1,6 +1,10 @@
 # This app will enable exploration of data representing mobile device attributes and behaviors.
 # For further references, see associated [Quarto file](static-app-prototype.qmd).
 
+# WISHES / TO DOs
+#1. Improve light error handling/messaging
+#2. Decouple the edits to summary from the invalidation of plots
+
 #includes
 library(shiny)
 library(bslib)
@@ -590,7 +594,7 @@ server <- function(input, output, session) {
         g + 
           geom_boxplot(
             aes(x=!!sym(input$inZVar2),
-                y=!!sym(input$inYVar),
+                y=!!sym(input$inXVar),
                 fill=!!sym(input$inZVar)
             )
           ) +
@@ -676,10 +680,15 @@ server <- function(input, output, session) {
           )
       })
       
-      #step
+      #######################################################
+      # Render step plot
+      #######################################################
       output$outStepPlot <- renderPlot({
         g <- ggplot(dt_updated)
-        g + 
+        
+        #render WITHOUT the faceting if not selected
+        if(input$inZVar == "~ None ~")
+          g + 
           geom_step(
             aes(x=!!sym(input$inXVar),
                 y=!!sym(input$inYVar)
@@ -691,18 +700,36 @@ server <- function(input, output, session) {
                 input$inXVar,
                 " by ",
                 input$inYVar,
-                " faceted by ",
-                input$inZVar,
                 sep=""
               )
-          ) +
-          facet_wrap(. ~ .data[[input$inZVar]])
-            
+          )
+        
+        #render WITH faceting if z selected
+        else
+          g + 
+            geom_step(
+              aes(x=!!sym(input$inXVar),
+                  y=!!sym(input$inYVar)
+              )
+            ) +
+            labs(
+              title=
+                paste(
+                  input$inXVar,
+                  " by ",
+                  input$inYVar,
+                  " faceted by ",
+                  input$inZVar,
+                  sep=""
+                )
+            ) +
+            facet_wrap(. ~ .data[[input$inZVar]])
       })
-
     })
     
-    #download csv button
+    #######################################################
+    # "render" download button
+    #######################################################
     output$outDownloadButton <- downloadHandler(
       filename = function() {
         paste('data-',
@@ -715,19 +742,21 @@ server <- function(input, output, session) {
         write.csv(dt_updated, con)
       }
     )
-    
-
-  })
-
-  #render sliders
+  }) 
+  
+  #######################################################
+  # Render sidebar sliders1 and 2
+  #######################################################
   output$outSlider1 <- renderUI({
-    #####improve error checking?######
-    #to avoid warnings, check value exists
+    
+    #only try to render if a var was selected from selectize (to avoid min/max warnings)
     if(length(input$inNumVars)>=1) {
       
+      #use min and max from the FULL dataset
       min1=min(dt[input$inNumVars[1]])
       max1=max(dt[input$inNumVars[1]])
       
+      #render slider1
       sliderInput(
         "inSlider1",
         min=min1,
@@ -738,12 +767,15 @@ server <- function(input, output, session) {
     }
   })
   output$outSlider2 <- renderUI({
-    #to avoid warnings, check value exists
+    
+    #only try to render if a 2nd var was selected from selectize (to avoid min/max warnings)
     if(length(input$inNumVars)==2) {
       
+      #use min and max from the FULL dataset
       min2=min(dt[input$inNumVars[2]])
       max2=max(dt[input$inNumVars[2]])
       
+      #render slider2
       sliderInput(
         "inSlider2",
         min=min2,
@@ -754,8 +786,9 @@ server <- function(input, output, session) {
     }
   })
   
-  #categorical var summary choices
-  #first one is req'd
+  #######################################################
+  # Render CAT summary var selectors
+  #######################################################
   output$outSummaryCatVar1 <- renderUI({
     selectizeInput(
       inputId = "inSummaryCatVar1",
@@ -775,7 +808,9 @@ server <- function(input, output, session) {
     )     
   })
   
-  #numerical var summary choices
+  #######################################################
+  # Render NUMERICAL summary var selectors
+  #######################################################
   output$outSummaryNumVar <- renderUI({
     selectizeInput(
       inputId = "inSummaryNumVar",
@@ -794,9 +829,6 @@ server <- function(input, output, session) {
       width = 200
     )     
   })
-  
-
-
 }
 
 # Run the application 
