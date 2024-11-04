@@ -31,7 +31,7 @@ ui <- fluidPage(
   ### action button to subset per selections (vs auto-sub as edited)
   sidebarLayout(
     sidebarPanel(
-      #width=4,
+      width=2,
       h3("Subset Configuration"),
       
       #categorical var selections
@@ -242,7 +242,7 @@ ui <- fluidPage(
               ),               
               selectizeInput(
                 inputId = "inZVar",
-                label = "Category (Color/Fill)",
+                label = "Category (Color/Fill/Facet)",
                 choices = c("~ None ~",catVars),
                 multiple = FALSE,
                 width = 200,
@@ -250,7 +250,7 @@ ui <- fluidPage(
               ),
               selectizeInput(
                 inputId = "inZVar2",
-                label = "Category 2 (Box & Whisker)",
+                label = "Category 2 (Whisker only)",
                 choices = catVars,
                 multiple = FALSE,
                 width = 200,
@@ -310,15 +310,19 @@ ui <- fluidPage(
           ),
           column(
             12,
-            column(
-              6,
-              #bin2d
-              plotOutput(
-                outputId = "outBin2DPlot"#,
-                #width = "50%"
-              )
+            #bin2d
+            plotOutput(
+              outputId = "outBin2DPlot"#,
+              #width = "50%"
+            )
+          ),
+          column(
+            12,
+            plotOutput(
+              outputId = "outStepPlot"
             )
           )
+            
               
           
           ###
@@ -614,6 +618,30 @@ server <- function(input, output, session) {
                 sep=""
               )
           )
+      })
+      
+      #step
+      output$outStepPlot <- renderPlot({
+        g <- ggplot(dt_updated)
+        g + 
+          geom_step(
+            aes(x=!!sym(input$inXVar),
+                y=!!sym(input$inYVar)
+            )
+          ) +
+          labs(
+            title=
+              paste(
+                input$inXVar,
+                " by ",
+                input$inYVar,
+                " faceted by ",
+                input$inZVar,
+                sep=""
+              )
+          ) +
+          facet_wrap(. ~ .data[[input$inZVar]])
+            
       })
 
     })
