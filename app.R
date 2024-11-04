@@ -228,17 +228,19 @@ ui <- fluidPage(
                   h4("Plots"),
                   selectizeInput(
                     inputId = "inXVar",
-                    label = "X-axis",
+                    label = "Primary (x)",
                     choices = numVars,
                     multiple = FALSE,
-                    width = 200
+                    width = 200,
+                    selected = numVars[1]
                   ),
                   selectizeInput(
                     inputId = "inYVar",
-                    label = "Y-axis",
+                    label = "Secondary (y)",
                     choices = numVars,
                     multiple = FALSE,
-                    width = 200
+                    width = 200,
+                    selected = numVars[2]
                   ),               
                   selectizeInput(
                     inputId = "inZVar",
@@ -261,7 +263,22 @@ ui <- fluidPage(
                 DTOutput(outputId="outSummaryNumerical")
               ),              
               
-              h3("Plots")
+              h3("Plots"),
+              #render various plots
+              plotOutput(
+                outputId = "outDensityPlot"#,
+                #width = "50%"
+              )
+              #g <- ggplot((data), aes(x = Apps))
+              #g <- ggplot(data)
+              #g + 
+              #  geom_density(aes(x=Apps)) +
+              #  labs(
+              #    title="Density by App Count",
+              #    x="Count of Apps"
+              #  )
+              
+              
               ###
               #So, first is a space to select your variables using checkboxes
               #with groups for cat/num to clarify
@@ -387,29 +404,32 @@ server <- function(input, output, session) {
                               "iqr" = ~ round(IQR(.x),digits=3),
                               "n" = ~ n()
                          )))
-
-                         
-        ##### update here with proper num summary stuff
-      
-      
-      
-      #data |>
-        #group_by(UsageClass) |>
-        #select(UsageClass,Apps) |>
-        #summarise(across(where(is.numeric),
-         #                list("mean" = ~ mean(.x),
-        #                      "median" = ~ median(.x),
-        #                      "sd" = ~ sd(.x),
-        #                      "iqr" = ~ IQR(.x),
-        #                      "n" = ~ n()
-        #                 )
-        #)
-        #)      
     })
     
-    #edit the summary displays accordingly
+    #BASE output for each plot
+    #density plot
+    output$outDensityPlot <- renderPlot({
+      g <- ggplot((dt_updated), aes(x = !!sym(input$inXVar)))
+      g <- ggplot(dt_updated)
+      g + 
+        geom_density(aes(x = !!sym(input$inXVar))) +
+        labs(
+          title=
+            paste(
+              "Density by ",
+              input$inXVar,
+              sep=""
+            ),
+          x=input$inXVar,
+          y="Density"
+        )
+    })
+    
+    
+    #edit the exploration displays accordingly
     observe({
-      #cat summary update
+      
+      #cat summary update IF I have seen CatVar2 set (opened the panel)
       output$outSummaryCategorical <-
         if (req(input$inSummaryCatVar2) == "~ None ~") { #req was the key to avoid crash!
           renderDT({
@@ -425,7 +445,8 @@ server <- function(input, output, session) {
               pivot_wider(names_from = !!sym(input$inSummaryCatVar2), values_from = count)
           })
         }
-      #num summary update
+      
+      #num summary update IF I have seen NumVarGroupBy (opened the panel)
       output$outSummaryNumerical <- 
         if (req(input$inSummaryNumVarGroupBy) == "~ None ~") {
           renderDT({
@@ -454,6 +475,26 @@ server <- function(input, output, session) {
                                )))
           })
         }
+      
+      #update density plot
+      output$outDensityPlot <- 
+        if (req(input$inSummaryNumVarGroupBy) == "~ None ~") {
+      output$outDensityPlot <- renderPlot({
+        g <- ggplot((dt_updated), aes(x = !!sym(input$inXVar)))
+        g <- ggplot(dt_updated)
+        g + 
+          geom_density(aes(x = !!sym(input$inXVar))) +
+          labs(
+            title=
+              paste(
+                "Density by ",
+                input$inXVar,
+                sep=""
+              ),
+            x=input$inXVar,
+            y="Density"
+          )
+      })
         
     })
 
