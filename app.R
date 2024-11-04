@@ -14,293 +14,327 @@ source("myhelpers.R")
 ### somewhere must use dynamic text
 ui <- fluidPage(
 
-    # Application title panel
-    titlePanel("Project 2: Exploring Mobile Device Data"),
+  # Application title panel
+  titlePanel("Project 2: Exploring Mobile Device Data"),
 
-    #author
-    h3("Andy Powers"),
-    h4(
-      tags$a(
-        href="mailto:apowers@ncsu.edu",
-        "apowers@ncsu.edu")
+  #author
+  h3("Andy Powers"),
+  h4(
+    tags$a(
+      href="mailto:apowers@ncsu.edu",
+      "apowers@ncsu.edu")
+    ),
+
+  # sidebar with widgets for subsetting
+  ### 2+ categorical vars: offer select levels as well as 'all'
+  ### 2+ numeric variable: dynamic method for slider 
+  ### action button to subset per selections (vs auto-sub as edited)
+  sidebarLayout(
+    sidebarPanel(
+      #width=4,
+      h3("Subset Configuration"),
+      
+      #categorical var selections
+      h4("Categorical"),
+      
+      ### model
+      radioButtons(
+        inputId = "inModel",
+        label = "Model",
+        choices = c("~ All ~",attributes(dt$Model)$levels)
       ),
-
-    # sidebar with widgets for subsetting
-    ### 2+ categorical vars: offer select levels as well as 'all'
-    ### 2+ numeric variable: dynamic method for slider 
-    ### action button to subset per selections (vs auto-sub as edited)
-    sidebarLayout(
-        sidebarPanel(
-          h3("Subset Configuration"),
-          
-          #categorical var selections
-          h4("Categorical"),
-          
-          ### model
-          radioButtons(
-            inputId = "inModel",
-            label = "Model",
-            choices = c("~ All ~",attributes(dt$Model)$levels)
-          ),
-          
-          ### OS
-          radioButtons(
-            inputId = "inOS",
-            label = "OS",
-            choices = c("~ All ~",attributes(dt$OS)$levels)
-          ),
-          
-          ### Gender
-          radioButtons(
-            inputId = "inGender",
-            label = "Gender",
-            choices = c("~ All ~",attributes(dt$Gender)$levels)
-          ),
-          
-          ### age groups
-          checkboxGroupInput(
-            inputId = "inAgeGroup",
-            label = "Age Group",
-            choices = attributes(dt$AgeGroup)$levels,
-            selected = attributes(dt$AgeGroup)$levels
-          ),          
-          
-          ### classes
-          checkboxGroupInput(
-            inputId = "inUsageClass",
-            label = "Usage Class",
-            choices = attributes(dt$UsageClass)$levels,
-            selected = attributes(dt$UsageClass)$levels
-          ),          
-          
-          #numerical var selections
-          h4("Numerical"),
-          
-          #select any 2 from list
-          selectizeInput(
-            inputId = "inNumVars",
-            label = "Select 0-2 variables to subset",
-            choices = numVars,
-            multiple = TRUE,
-            options = list(maxItems = 2,
-                           plugins = c("clear_button")
-                           )
-            ),
-          
-          #little dynamic text to note and "warn" about sliders
-          textOutput(
-            outputId = "outSliderText"
-          ),
-          
-          #slider1 - conditional, only if inNumVars length >=1
-          conditionalPanel(
-            condition = "input.inNumVars.length >= 1",
-            uiOutput("outSlider1")  
-          ),
-          
-          #slider2 - conditional, only if inNumVars length ==2
-          conditionalPanel(
-            condition = "input.inNumVars.length == 2",
-            uiOutput("outSlider2")  
-          ),
-          
-          #"go" button
-          actionButton(
-            inputId = "inProcessButton",
-            label = "Process Selections"
-          )
-                    
+      
+      ### OS
+      radioButtons(
+        inputId = "inOS",
+        label = "OS",
+        choices = c("~ All ~",attributes(dt$OS)$levels)
+      ),
+      
+      ### Gender
+      radioButtons(
+        inputId = "inGender",
+        label = "Gender",
+        choices = c("~ All ~",attributes(dt$Gender)$levels)
+      ),
+      
+      ### age groups
+      checkboxGroupInput(
+        inputId = "inAgeGroup",
+        label = "Age Group",
+        choices = attributes(dt$AgeGroup)$levels,
+        selected = attributes(dt$AgeGroup)$levels
+      ),          
+      
+      ### classes
+      checkboxGroupInput(
+        inputId = "inUsageClass",
+        label = "Usage Class",
+        choices = attributes(dt$UsageClass)$levels,
+        selected = attributes(dt$UsageClass)$levels
+      ),          
+      
+      #numerical var selections
+      h4("Numerical"),
+      
+      #select any 2 from list
+      selectizeInput(
+        inputId = "inNumVars",
+        label = "Select 0-2 variables to subset",
+        choices = numVars,
+        multiple = TRUE,
+        options = list(maxItems = 2,
+                       plugins = c("clear_button")
+                       )
         ),
-
-        # main panel with tabs
-        mainPanel(
-          navset_pill(
-            
-            ### About tab, default start
-            nav_panel(
-              title = "About",
-              p(),
-              
-              #header image
-              tags$div(
-                style="text-align:center",
-                img(src="https://cdn.pixabay.com/photo/2016/11/23/13/40/cellphone-1852898_1280.jpg",width="200px")
-              ),
-                            
-              ##### Purpose of app
-              h4("Purpose"),
-              p("This Shiny app should facilitate smooth and dynamic analysis of the dataset described below. Through reactive methods, the user can easily subset and filter data and re-query to programmatically update plots and summaries."),
-              
-              ##### Data, source, link
-              h4("Data Source"),
-              p("This app will explore mobile device usage data from",
-                tags$a(
-                  href="https://www.kaggle.com/datasets/valakhorasani/mobile-device-usage-and-user-behavior-dataset",
-                  "Kaggle"),
-                ". Their site does not describe the sampling method or sources, but it summarizes the dataset well:"
-              ),
-              tags$blockquote(
-                "This dataset provides a comprehensive analysis of mobile device usage patterns and user behavior classification. It contains 700 samples of user data, including metrics such as app usage time, screen-on time, battery drain, and data consumption. Each entry is categorized into one of five user behavior classes, ranging from light to extreme usage, allowing for insightful analysis and modeling."
-              ),
-              
-              ##### tell purpose of sidebar and each tab
-              h4("App Components"),
-              h5("Sidebar"),
-              p("Define changes to the dataset query, including categorical and numerical subsetting. When data subsets are ready, click Process Selections to run and update the dataset and displays."),
-              h5("About"),
-              p("Information about the app design and usage."),
-              h5("Data Download"),
-              p("Display dataset returned by the latest execution of the Process Selections button, incorporating applicable subsets. User may also download the data as a .csv file."),
-              h5("Data Exploration"),
-              p("Area for exploratory data analysis using numerical and graphical summaries. User may adjust certain plot elements and variables displayed."),
-              
-              #kaggle img/link
-              tags$a(
-                href="https://www.kaggle.com/",
-                img(src="https://www.kaggle.com/static/images/site-logo.svg",height="30px")
-              )
-            ),
-            
-            ### Data Download tab
-            nav_panel(
-              title = "Data Download",
-              p(),
-              
-              ##### save data via downloadButton
-              downloadButton(
-                outputId = "outDownloadButton",
-                label = "Download Table as .csv"
-              ),
-              p(),
-                            
-              ##### display with dataTableOutput / renderDataTable
-              DTOutput(outputId="outDTOutput")
-            ),
-            
-            
-            
-            ### Data Exploration tab
-            ##### obtain the num/graph summaries from the prototype build contents
-            ##### design as I like - subtabs, dynamic UI, etc.
-            ##### subset when selected/action
-            ##### user can display cat or num var summaries
-            ##### user selects any cat or num vars to summarize, plus any modifying the summary
-            ####### for ex: select num var for num summary, plus cat var to summarize across
-            ####### for ex: plots, select which var on x or y, coloring, etc.
-            ##### account for error messages, plus loading spinners for waits
-            nav_panel(
-              title = "Data Exploration",
-              p(),
-
-              h3("Display Configuration"),
-              column(
-                12,         
-                ### LEFT COL: pick summary type
-                column(
-                  6,
-                  h4("Summary"),
-                  radioButtons(
-                    inputId = "inSummaryType",
-                    label = "Type",
-                    choices = c("Categorical", "Numerical")
-                  ),
-                  #show numerical selection if appropriate
-                  conditionalPanel(
-                    condition = "input.inSummaryType == 'Numerical'",
-                    uiOutput("outSummaryNumVar"),
-                    uiOutput("outSummaryNumVarGroupBy")
-                  ),                
-                  #show categorical selection if appropriate
-                  conditionalPanel(
-                    condition = "input.inSummaryType == 'Categorical'",
-                    uiOutput("outSummaryCatVar1"),
-                    uiOutput("outSummaryCatVar2")
-                  )
-                  
-                ),  
+      
+      #little dynamic text to note and "warn" about sliders
+      textOutput(
+        outputId = "outSliderText"
+      ),
+      
+      #slider1 - conditional, only if inNumVars length >=1
+      conditionalPanel(
+        condition = "input.inNumVars.length >= 1",
+        uiOutput("outSlider1")  
+      ),
+      
+      #slider2 - conditional, only if inNumVars length ==2
+      conditionalPanel(
+        condition = "input.inNumVars.length == 2",
+        uiOutput("outSlider2")  
+      ),
+      
+      #"go" button
+      actionButton(
+        inputId = "inProcessButton",
+        label = "Process Selections"
+      )
                 
-                ### RIGHT COL: choose vars to use in plots 
-                column(
-                  6,
-                  h4("Plots"),
-                  selectizeInput(
-                    inputId = "inXVar",
-                    label = "Primary (x)",
-                    choices = numVars,
-                    multiple = FALSE,
-                    width = 200,
-                    selected = numVars[1]
-                  ),
-                  selectizeInput(
-                    inputId = "inYVar",
-                    label = "Secondary (y)",
-                    choices = numVars,
-                    multiple = FALSE,
-                    width = 200,
-                    selected = numVars[2]
-                  ),               
-                  selectizeInput(
-                    inputId = "inZVar",
-                    label = "Extra (Color/Fill)",
-                    choices = c("~ None ~",catVars),
-                    multiple = FALSE,
-                    width = 200,
-                    selected = catVars[1]
-                  )               
-                )
+    ),
+
+    # main panel with tabs
+    mainPanel(
+      navset_pill(
+        
+        ### About tab, default start
+        nav_panel(
+          title = "About",
+          p(),
+          
+          #header image
+          tags$div(
+            style="text-align:center",
+            img(src="https://cdn.pixabay.com/photo/2016/11/23/13/40/cellphone-1852898_1280.jpg",width="200px")
+          ),
+                        
+          ##### Purpose of app
+          h4("Purpose"),
+          p("This Shiny app should facilitate smooth and dynamic analysis of the dataset described below. Through reactive methods, the user can easily subset and filter data and re-query to programmatically update plots and summaries."),
+          
+          ##### Data, source, link
+          h4("Data Source"),
+          p("This app will explore mobile device usage data from",
+            tags$a(
+              href="https://www.kaggle.com/datasets/valakhorasani/mobile-device-usage-and-user-behavior-dataset",
+              "Kaggle"),
+            ". Their site does not describe the sampling method or sources, but it summarizes the dataset well:"
+          ),
+          tags$blockquote(
+            "This dataset provides a comprehensive analysis of mobile device usage patterns and user behavior classification. It contains 700 samples of user data, including metrics such as app usage time, screen-on time, battery drain, and data consumption. Each entry is categorized into one of five user behavior classes, ranging from light to extreme usage, allowing for insightful analysis and modeling."
+          ),
+          
+          ##### tell purpose of sidebar and each tab
+          h4("App Components"),
+          h5("Sidebar"),
+          p("Define changes to the dataset query, including categorical and numerical subsetting. When data subsets are ready, click Process Selections to run and update the dataset and displays."),
+          h5("About"),
+          p("Information about the app design and usage."),
+          h5("Data Download"),
+          p("Display dataset returned by the latest execution of the Process Selections button, incorporating applicable subsets. User may also download the data as a .csv file."),
+          h5("Data Exploration"),
+          p("Area for exploratory data analysis using numerical and graphical summaries. User may adjust certain plot elements and variables displayed."),
+          
+          #kaggle img/link
+          tags$a(
+            href="https://www.kaggle.com/",
+            img(src="https://www.kaggle.com/static/images/site-logo.svg",height="30px")
+          )
+        ),
+        
+        ### Data Download tab
+        nav_panel(
+          title = "Data Download",
+          p(),
+          
+          ##### save data via downloadButton
+          downloadButton(
+            outputId = "outDownloadButton",
+            label = "Download Table as .csv"
+          ),
+          p(),
+                        
+          ##### display with dataTableOutput / renderDataTable
+          DTOutput(outputId="outDTOutput")
+        ),
+        
+        
+        
+        ### Data Exploration tab
+        ##### obtain the num/graph summaries from the prototype build contents
+        ##### design as I like - subtabs, dynamic UI, etc.
+        ##### subset when selected/action
+        ##### user can display cat or num var summaries
+        ##### user selects any cat or num vars to summarize, plus any modifying the summary
+        ####### for ex: select num var for num summary, plus cat var to summarize across
+        ####### for ex: plots, select which var on x or y, coloring, etc.
+        ##### account for error messages, plus loading spinners for waits
+        nav_panel(
+          title = "Data Exploration",
+          p(),
+
+          h3("Display Configuration"),
+          column(
+            12,         
+            ### LEFT COL: pick summary type
+            column(
+              6,
+              h4("Summary"),
+              radioButtons(
+                inputId = "inSummaryType",
+                label = "Type",
+                choices = c("Categorical", "Numerical")
               ),
-              
-              h3("Summaries"),
-              #render table per selections
-              conditionalPanel(
-                condition = "input.inSummaryType == 'Categorical'",
-                DTOutput(outputId="outSummaryCategorical")
-              ),
+              #show numerical selection if appropriate
               conditionalPanel(
                 condition = "input.inSummaryType == 'Numerical'",
-                DTOutput(outputId="outSummaryNumerical")
-              ),              
+                uiOutput("outSummaryNumVar"),
+                uiOutput("outSummaryNumVarGroupBy")
+              ),                
+              #show categorical selection if appropriate
+              conditionalPanel(
+                condition = "input.inSummaryType == 'Categorical'",
+                uiOutput("outSummaryCatVar1"),
+                uiOutput("outSummaryCatVar2")
+              )
               
-              h3("Plots"),
-              #render various plots
-              
+            ),  
+            
+            ### RIGHT COL: choose vars to use in plots 
+            column(
+              6,
+              h4("Plots"),
+              selectizeInput(
+                inputId = "inXVar",
+                label = "Primary (x)",
+                choices = numVars,
+                multiple = FALSE,
+                width = 200,
+                selected = numVars[1]
+              ),
+              selectizeInput(
+                inputId = "inYVar",
+                label = "Secondary (y)",
+                choices = numVars,
+                multiple = FALSE,
+                width = 200,
+                selected = numVars[2]
+              ),               
+              selectizeInput(
+                inputId = "inZVar",
+                label = "Category (Color/Fill)",
+                choices = c("~ None ~",catVars),
+                multiple = FALSE,
+                width = 200,
+                selected = catVars[1]
+              ),
+              selectizeInput(
+                inputId = "inZVar2",
+                label = "Category 2 (Box & Whisker)",
+                choices = catVars,
+                multiple = FALSE,
+                width = 200,
+                selected = catVars[2]
+              )   
+            )
+          ),
+          
+          h3("Summaries"),
+          #render table per selections
+          conditionalPanel(
+            condition = "input.inSummaryType == 'Categorical'",
+            DTOutput(outputId="outSummaryCategorical")
+          ),
+          conditionalPanel(
+            condition = "input.inSummaryType == 'Numerical'",
+            DTOutput(outputId="outSummaryNumerical")
+          ),              
+          
+          h3("Plots"),
+          #render various plots
+          column(
+            12,
+            column(
+              6,
               #density
               plotOutput(
                 outputId = "outDensityPlot"#,
                 #width = "50%"
-              ),
-              
+              )
+            ),
+            column(
+              6,
               #filled density
               plotOutput(
                 outputId = "outFilledDensityPlot"
               )
-              
-              
-              ###
-              #So, first is a space to select your variables using checkboxes
-              #with groups for cat/num to clarify
-              #these selections will automatically update (so no isolate stuff)
-
-              #PULL WHAT I DID FROM PROTOTYPE!!!
-              #next, select to show EITHER? cat or num summaries?
-              
-              #need a structure for display, grouping, etc.
-              
-              #also select the vars to SUMMARIZE
-              #vs those categories to GROUP ACROSS
-              
-              #plots
-              #PULL WHAT I DID FROM PROTOTYPE!!!
-              #allow selection of the x, y, color - yikes
-              
-              #last of all, add in error checking and spinner viewers
-              
             )
-
+          ),
+          column(
+            12,
+            column(
+              6,
+              #density
+              plotOutput(
+                outputId = "outBoxWhiskerPlot"#,
+                #width = "50%"
+              )
+            ),
+            column(
+              6,
+              #Scatter
+              plotOutput(
+                outputId = "outScatterPlot"
+              )
+            )
           )
-           #plots etc.
+              
+          
+          ###
+          #So, first is a space to select your variables using checkboxes
+          #with groups for cat/num to clarify
+          #these selections will automatically update (so no isolate stuff)
+
+          #PULL WHAT I DID FROM PROTOTYPE!!!
+          #next, select to show EITHER? cat or num summaries?
+          
+          #need a structure for display, grouping, etc.
+          
+          #also select the vars to SUMMARIZE
+          #vs those categories to GROUP ACROSS
+          
+          #plots
+          #PULL WHAT I DID FROM PROTOTYPE!!!
+          #allow selection of the x, y, color - yikes
+          
+          #last of all, add in error checking and spinner viewers
+          
         )
+
+      )
+       #plots etc.
     )
+  )
 )
 
 # server definition
@@ -507,10 +541,10 @@ server <- function(input, output, session) {
           labs(
             title=
               paste(
-                "Filled Density per ",
-                input$inZVar,
-                " by ",
+                "Filled Density by ",
                 input$inXVar,
+                " per ",
+                input$inZVar,
                 sep=""
               ),
             x=input$inXVar,
@@ -523,7 +557,73 @@ server <- function(input, output, session) {
           )
       })
       
+      #update box and whisker plot
+      output$outBoxWhiskerPlot <- renderPlot({
+        g <- ggplot(dt_updated)
+        g + 
+          geom_boxplot(
+            aes(x=!!sym(input$inZVar2),
+                y=!!sym(input$inYVar),
+                fill=!!sym(input$inZVar)
+            )
+          ) +
+          labs(
+            title=
+              paste(
+                input$inZVar2,
+                " by ",
+                input$inYVar,
+                " per ",
+                input$inZVar,
+                sep=""
+              )
+          )
+      })
+      
+      #update scatter plot
+      output$outScatterPlot <- renderPlot({
+        g <- ggplot(dt_updated)
         
+        #leave out the color if not selected
+        if(input$inZVar == "~ None ~")
+          g + 
+            geom_point(
+              aes(x=!!sym(input$inXVar),
+                  y=!!sym(input$inYVar)
+              )
+            ) +
+            labs(
+              title=
+                paste(
+                  input$inXVar,
+                  " by ",
+                  input$inYVar,
+                  #" per ",
+                  #input$inZVar,
+                  sep=""
+                )
+            )
+        else
+          g + 
+          geom_point(
+            aes(x=!!sym(input$inXVar),
+                y=!!sym(input$inYVar),
+                color=!!sym(input$inZVar)
+            )
+          ) +
+          labs(
+            title=
+              paste(
+                input$inXVar,
+                " by ",
+                input$inYVar,
+                " per ",
+                input$inZVar,
+                sep=""
+              )
+          )
+      })
+
     })
 
   })
