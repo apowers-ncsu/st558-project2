@@ -409,29 +409,31 @@ server <- function(input, output, session) {
     #BASE output for each plot
     #density plot
     output$outDensityPlot <- renderPlot({
-      g <- ggplot((dt_updated), aes(x = !!sym(input$inXVar)))
+      g <- ggplot((dt_updated), aes(x = !!sym(numVars[1])))
       g <- ggplot(dt_updated)
       g + 
-        geom_density(aes(x = !!sym(input$inXVar))) +
+        geom_density(aes(x = !!sym(numVars[1]))) +
         labs(
           title=
             paste(
               "Density by ",
-              input$inXVar,
+              numVars[1],
               sep=""
             ),
-          x=input$inXVar,
+          x= numVars[1],
           y="Density"
         )
     })
     
     
     #edit the exploration displays accordingly
-    observe({
+    observe({ req(input$inSummaryCatVar1)
+      #abort THIS WHOLE BLOCK if tab not yet opened
+      #covers a single variable in display to start
       
       #cat summary update IF I have seen CatVar2 set (opened the panel)
       output$outSummaryCategorical <-
-        if (req(input$inSummaryCatVar2) == "~ None ~") { #req was the key to avoid crash!
+        if (input$inSummaryCatVar2 == "~ None ~") {
           renderDT({
             dt_updated |> 
               group_by(!!sym(input$inSummaryCatVar1)) |>
@@ -446,39 +448,41 @@ server <- function(input, output, session) {
           })
         }
       
-      #num summary update IF I have seen NumVarGroupBy (opened the panel)
-      output$outSummaryNumerical <- 
-        if (req(input$inSummaryNumVarGroupBy) == "~ None ~") {
-          renderDT({
-            dt_updated |>
-              select(!!sym(input$inSummaryNumVar)) |>
-              summarize(across(where(is.numeric),
-                               list("mean" = ~ round(mean(.x),digits=3),
-                                    "median" = ~ round(median(.x),digits=3),
-                                    "sd" = ~ round(sd(.x),digits=3),
-                                    "iqr" = ~ round(IQR(.x),digits=3),
-                                    "n" = ~ n()
-                             )))
-          })
-        } else {
-          renderDT({
-            dt_updated |>
-              select(!!sym(input$inSummaryNumVar),
-                     !!sym(input$inSummaryNumVarGroupBy)) |>
-              group_by(!!sym(input$inSummaryNumVarGroupBy)) |>
-              summarize(across(where(is.numeric),
-                               list("mean" = ~ round(mean(.x),digits=3),
-                                    "median" = ~ round(median(.x),digits=3),
-                                    "sd" = ~ round(sd(.x),digits=3),
-                                    "iqr" = ~ round(IQR(.x),digits=3),
-                                    "n" = ~ n()
+      #num summary update IF I have seen NumVarGroupBy (opened the conditional panel)
+      observe({ req(input$inSummaryNumVarGroupBy)
+        #condition this whole block on whether the numerical cat has been INIT
+        
+        output$outSummaryNumerical <- 
+          if (input$inSummaryNumVarGroupBy == "~ None ~") {
+            renderDT({
+              dt_updated |>
+                select(!!sym(input$inSummaryNumVar)) |>
+                summarize(across(where(is.numeric),
+                                 list("mean" = ~ round(mean(.x),digits=3),
+                                      "median" = ~ round(median(.x),digits=3),
+                                      "sd" = ~ round(sd(.x),digits=3),
+                                      "iqr" = ~ round(IQR(.x),digits=3),
+                                      "n" = ~ n()
                                )))
-          })
-        }
+            })
+          } else {
+            renderDT({
+              dt_updated |>
+                select(!!sym(input$inSummaryNumVar),
+                       !!sym(input$inSummaryNumVarGroupBy)) |>
+                group_by(!!sym(input$inSummaryNumVarGroupBy)) |>
+                summarize(across(where(is.numeric),
+                                 list("mean" = ~ round(mean(.x),digits=3),
+                                      "median" = ~ round(median(.x),digits=3),
+                                      "sd" = ~ round(sd(.x),digits=3),
+                                      "iqr" = ~ round(IQR(.x),digits=3),
+                                      "n" = ~ n()
+                                 )))
+            })
+          }
+      })   #END #condition this whole block on whether the numerical cat has been INIT
       
-      #update density plot
-      output$outDensityPlot <- 
-        if (req(input$inSummaryNumVarGroupBy) == "~ None ~") {
+      #update density plot, predicate on xvar having been initialized
       output$outDensityPlot <- renderPlot({
         g <- ggplot((dt_updated), aes(x = !!sym(input$inXVar)))
         g <- ggplot(dt_updated)
