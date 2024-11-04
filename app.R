@@ -437,26 +437,6 @@ server <- function(input, output, session) {
                          )))
     })
     
-    #BASE output for each plot
-    #density plot
-    output$outDensityPlot <- renderPlot({
-      g <- ggplot((dt_updated), aes(x = !!sym(numVars[1])))
-      g <- ggplot(dt_updated)
-      g + 
-        geom_density(aes(x = !!sym(numVars[1]))) +
-        labs(
-          title=
-            paste(
-              "Density by ",
-              numVars[1],
-              sep=""
-            ),
-          x= numVars[1],
-          y="Density"
-        )
-    })
-    
-    
     #edit the exploration displays accordingly
     observe({ req(input$inSummaryCatVar1)
       #abort THIS WHOLE BLOCK if tab not yet opened
