@@ -417,26 +417,6 @@ server <- function(input, output, session) {
         )      
     )
     
-    #BASE output for categorical table 
-    output$outSummaryCategorical <- renderDT({
-      dt_updated |>
-        group_by(catVars[1]) |>
-        summarize(count = n())
-    }) 
-    
-    #BASE output for numerical table
-    output$outSummaryNumerical <- renderDT({
-      dt_updated |>
-        select(numVars[1]) |>
-        summarize(across(where(is.numeric),
-                         list("mean" = ~ round(mean(.x),digits=3),
-                              "median" = ~ round(median(.x),digits=3),
-                              "sd" = ~ round(sd(.x),digits=3),
-                              "iqr" = ~ round(IQR(.x),digits=3),
-                              "n" = ~ n()
-                         )))
-    })
-    
     #edit the exploration displays accordingly
     observe({ req(input$inSummaryCatVar1)
       #abort THIS WHOLE BLOCK if tab not yet opened
